@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Money Split Tool</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  :root{
+    --navy: #0c1420;
+    --navy-2: #121e30;
+    --card: #16233a;
+    --card-border: #2a3c5a;
+    --gold: #d4af37;
+    --gold-bright: #f1cd6b;
+    --gold-dim: #8a6f2c;
+    --cream: #f3ecd9;
+    --cream-dim: #b9b2a0;
+    --emerald: #1f7a5c;
+    --emerald-bright: #2fa87e;
+    --red: #c25b4a;
+    --shadow: 0 20px 50px -20px rgba(0,0,0,0.6);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(ellipse at top, #182742 0%, var(--navy) 55%),
+      var(--navy);
+    color:var(--cream);
+    font-family:'Manrope', sans-serif;
+    min-height:100vh;
+    padding-bottom:60px;
+  }
+
+  /* ---------- Header / VIP banner ---------- */
+  .banner{
+    position:relative;
+    padding:46px 20px 40px;
+    text-align:center;
+    overflow:hidden;
+    border-bottom:1px solid var(--gold-dim);
+    background:
+      linear-gradient(180deg, rgba(212,175,55,0.08), transparent 70%);
+  }
+  .banner::before, .banner::after{
+    content:"";
+    position:absolute;
+    top:0; bottom:0;
+    width:1px;
+    background:linear-gradient(180deg, transparent, var(--gold-dim), transparent);
+  }
+  .banner::before{ left:14px; }
+  .banner::after{ right:14px; }
+  .crest{
+    font-size:11px;
+    letter-spacing:6px;
+    color:var(--gold);
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:14px;
+    opacity:0.9;
+  }
+  .crest span{ opacity:0.5; margin:0 10px; }
+  h1.vip-title{
+    font-family:'Cinzel Decorative', serif;
+    font-weight:900;
+    font-size:clamp(28px, 5vw, 52px);
+    margin:0;
+    line-height:1.25;
+    background:linear-gradient(180deg, var(--gold-bright) 10%, var(--gold) 45%, #9c7b29 90%);
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+    text-shadow:0 2px 18px rgba(212,175,55,0.25);
+    letter-spacing:1px;
+  }
+  .launched-by{
+    font-family:'Cormorant Garamond', serif;
+    font-style:italic;
+    font-size:clamp(18px, 2.6vw, 26px);
+    color:var(--cream);
+    margin-top:10px;
+    letter-spacing:0.5px;
+  }
+  .launched-by b{
+    font-family:'Cinzel Decorative', serif;
+    font-style:normal;
+    font-weight:700;
+    color:var(--gold-bright);
+    padding:0 4px;
+  }
+  .tagline{
+    margin-top:16px;
+    font-size:13px;
+    color:var(--cream-dim);
+    letter-spacing:2px;
+    text-transform:uppercase;
+  }
+
+  /* ---------- Layout ---------- */
+  .wrap{
+    max-width:960px;
+    margin:0 auto;
+    padding:36px 18px 0;
+    display:grid;
+    gap:26px;
+  }
+  .card{
+    background:linear-gradient(180deg, var(--card), var(--navy-2));
+    border:1px solid var(--card-border);
+    border-radius:16px;
+    padding:26px 24px;
+    box-shadow:var(--shadow);
+    position:relative;
+  }
+  .card::before{
+    content:"";
+    position:absolute;
+    top:0; left:22px; right:22px;
+    height:1px;
+    background:linear-gradient(90deg, transparent, var(--gold-dim), transparent);
+  }
+  .card h2{
+    font-family:'Cinzel Decorative', serif;
+    font-size:18px;
+    color:var(--gold-bright);
+    margin:0 0 4px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .card h2 .num{
+    width:26px; height:26px;
+    border:1px solid var(--gold-dim);
+    border-radius:50%;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    font-family:'Manrope',sans-serif;
+    font-size:12px;
+    color:var(--gold);
+  }
+  .sub{
+    color:var(--cream-dim);
+    font-size:13px;
+    margin:0 0 18px;
+  }
+
+  /* forms */
+  .row{ display:flex; gap:10px; flex-wrap:wrap; }
+  input, select{
+    background:#0e1928;
+    border:1px solid var(--card-border);
+    color:var(--cream);
+    padding:11px 13px;
+    border-radius:9px;
+    font-size:14px;
+    font-family:'Manrope',sans-serif;
+    outline:none;
+    transition:border-color .15s;
+  }
+  input::placeholder{ color:#6c7688; }
+  input:focus, select:focus{ border-color:var(--gold); }
+  input[type=text]{ flex:1; min-width:140px; }
+  input[type=number]{ width:130px; }
+
+  button{
+    font-family:'Manrope',sans-serif;
+    font-weight:700;
+    font-size:13.5px;
+    letter-spacing:0.3px;
+    padding:11px 18px;
+    border-radius:9px;
+    border:1px solid var(--gold-dim);
+    background:linear-gradient(180deg, #2a2210, #1a1608);
+    color:var(--gold-bright);
+    cursor:pointer;
+    transition:transform .12s, background .15s;
+  }
+  button:hover{ transform:translateY(-1px); background:linear-gradient(180deg,#332711,#1f1a0a); }
+  button:active{ transform:translateY(0); }
+  button.primary{
+    background:linear-gradient(180deg, var(--gold-bright), var(--gold));
+    color:#1a1608;
+    border-color:var(--gold);
+  }
+  button.primary:hover{ background:linear-gradient(180deg,#f6d885,var(--gold-bright)); }
+  button.ghost{
+    background:transparent;
+    color:var(--cream-dim);
+    border-color:var(--card-border);
+    font-weight:600;
+  }
+  button.ghost:hover{ color:var(--red); border-color:var(--red); background:rgba(194,91,74,0.08); }
+
+  /* chip list of people */
+  .chips{ display:flex; flex-wrap:wrap; gap:10px; margin-top:16px; }
+  .chip{
+    display:flex; align-items:center; gap:8px;
+    background:#0e1928;
+    border:1px solid var(--card-border);
+    padding:7px 8px 7px 14px;
+    border-radius:999px;
+    font-size:13.5px;
+  }
+  .chip .avatar{
+    width:22px; height:22px;
+    border-radius:50%;
+    background:linear-gradient(135deg, var(--gold), var(--emerald));
+    display:flex; align-items:center; justify-content:center;
+    font-size:11px; font-weight:800; color:#0c1420;
+  }
+  .chip button{
+    all:unset; cursor:pointer; color:var(--cream-dim); font-size:15px; line-height:1; padding:0 4px;
+  }
+  .chip button:hover{ color:var(--red); }
+
+  /* expense list styled like a receipt */
+  .receipt{
+    margin-top:18px;
+    border-top:1px dashed var(--card-border);
+  }
+  .expense-row{
+    display:grid;
+    grid-template-columns:1fr auto auto auto;
+    gap:14px;
+    align-items:center;
+    padding:13px 4px;
+    border-bottom:1px dashed var(--card-border);
+    font-size:14px;
+  }
+  .expense-row .desc{ color:var(--cream); }
+  .expense-row .desc small{ display:block; color:var(--cream-dim); font-size:11.5px; margin-top:2px; }
+  .expense-row .amt{ font-weight:800; color:var(--gold-bright); font-variant-numeric:tabular-nums; }
+  .expense-row .payer{
+    font-size:11.5px;
+    color:var(--emerald-bright);
+    border:1px solid var(--emerald);
+    padding:3px 9px;
+    border-radius:999px;
+    white-space:nowrap;
+  }
+  .empty{ color:var(--cream-dim); font-size:13.5px; padding:18px 4px; text-align:center; font-style:italic; }
+
+  /* summary */
+  .summary-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(160px,1fr));
+    gap:14px;
+    margin-bottom:20px;
+  }
+  .stat{
+    background:#0e1928;
+    border:1px solid var(--card-border);
+    border-radius:12px;
+    padding:16px;
+    text-align:center;
+  }
+  .stat .label{ font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--cream-dim); }
+  .stat .value{ font-family:'Cinzel Decorative',serif; font-size:22px; color:var(--gold-bright); margin-top:6px; }
+
+  table{ width:100%; border-collapse:collapse; font-size:14px; }
+  th{
+    text-align:left; color:var(--cream-dim); font-weight:600; font-size:11.5px;
+    text-transform:uppercase; letter-spacing:1px;
+    padding:8px 10px; border-bottom:1px solid var(--card-border);
+  }
+  td{ padding:12px 10px; border-bottom:1px solid #1d2c44; }
+  .pos{ color:var(--emerald-bright); font-weight:700; }
+  .neg{ color:var(--red); font-weight:700; }
+  .zero{ color:var(--cream-dim); }
+
+  .settle-list{ margin-top:10px; display:grid; gap:9px; }
+  .settle-item{
+    display:flex; align-items:center; gap:10px;
+    background:#0e1928; border:1px solid var(--card-border);
+    padding:12px 14px; border-radius:10px; font-size:14px;
+  }
+  .settle-item .arrow{ color:var(--gold); font-weight:800; }
+  .settle-item b{ color:var(--gold-bright); }
+  .settle-item .amt{ margin-left:auto; font-weight:800; color:var(--emerald-bright); }
+
+  .footer-actions{
+    display:flex; justify-content:center; gap:14px; flex-wrap:wrap;
+    margin-top:6px;
+  }
+
+  footer{
+    text-align:center;
+    color:var(--cream-dim);
+    font-size:12px;
+    margin-top:50px;
+    letter-spacing:1px;
+  }
+  footer b{ color:var(--gold-dim); }
+
+  @media (max-width:560px){
+    .expense-row{ grid-template-columns:1fr; gap:6px; }
+    .expense-row .payer{ justify-self:start; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="banner">
+    <div class="crest">GROUP TRIP LEDGER <span>&#9670;</span> EST. 2026</div>
+    <h1 class="vip-title">SPLIT TOOL</h1>
+    <div class="launched-by">Launched by <b>Mr. Abhinandan Singh Rajput</b></div>
+    <div class="tagline">Har Kharcha Barabar &mdash; Trip Ho Ya Party</div>
+  </div>
+
+  <div class="wrap">
+
+    <!-- STEP 1: People -->
+    <div class="card">
+      <h2><span class="num">1</span>Group Members Jodo</h2>
+      <p class="sub">Trip me jitne log hain, unka naam yahan add karo.</p>
+      <div class="row">
+        <input type="text" id="nameInput" placeholder="Naam likho (e.g. Rahul)">
+        <button class="primary" onclick="addPerson()">+ Add Member</button>
+      </div>
+      <div class="chips" id="peopleChips"></div>
+    </div>
+
+    <!-- STEP 2: Expenses -->
+    <div class="card">
+      <h2><span class="num">2</span>Kharche Add Karo</h2>
+      <p class="sub">Kisne kya kharch kiya, kitna kharch kiya &mdash; sab yahan darj karo.</p>
+      <div class="row">
+        <select id="payerSelect"></select>
+        <input type="text" id="descInput" placeholder="Kharche ka naam (e.g. Hotel, Khana, Petrol)">
+        <input type="number" id="amountInput" placeholder="Rupaye" min="0">
+        <button class="primary" onclick="addExpense()">+ Add Kharcha</button>
+      </div>
+      <div class="receipt" id="expenseList"></div>
+    </div>
+
+    <!-- STEP 3: Summary -->
+    <div class="card">
+      <h2><span class="num">3</span>Total Calculation</h2>
+      <p class="sub">Poora hisaab &mdash; kisne kitna diya, kisne kitna khaya.</p>
+      <div class="summary-grid" id="summaryStats"></div>
+      <table>
+        <thead>
+          <tr><th>Naam</th><th>Diya (Paid)</th><th>Hissa (Share)</th><th>Balance</th></tr>
+        </thead>
+        <tbody id="summaryTable"></tbody>
+      </table>
+    </div>
+
+    <!-- STEP 4: Settlement -->
+    <div class="card">
+      <h2><span class="num">4</span>Kisko Kitna Dena Hai</h2>
+      <p class="sub">Sabse kam transaction me poora hisaab barabar.</p>
+      <div class="settle-list" id="settleList"></div>
+    </div>
+
+    <div class="footer-actions">
+      <button class="primary" onclick="downloadPDF()">&#11015; Download PDF</button>
+      <button class="ghost" onclick="resetAll()">Sab Reset Karo</button>
+    </div>
+
+    <footer>Designed for the crew &mdash; <b>Split Tool</b> by Mr. Abhinandan Singh Rajput</footer>
+  </div>
+
+<script>
+let people = [];   // ["Rahul","Amit",...]
+let expenses = [];  // {payer, desc, amount}
+
+function addPerson(){
+  const input = document.getElementById('nameInput');
+  const name = input.value.trim();
+  if(!name){ input.focus(); return; }
+  if(people.includes(name)){ alert("Yeh naam pehle se hai!"); return; }
+  people.push(name);
+  input.value = '';
+  input.focus();
+  render();
+}
+
+function removePerson(name){
+  people = people.filter(p => p !== name);
+  expenses = expenses.filter(e => e.payer !== name);
+  render();
+}
+
+function addExpense(){
+  const payer = document.getElementById('payerSelect').value;
+  const desc = document.getElementById('descInput').value.trim() || 'Kharcha';
+  const amount = parseFloat(document.getElementById('amountInput').value);
+
+  if(people.length === 0){ alert("Pehle group members add karo!"); return; }
+  if(!payer){ alert("Payer select karo!"); return; }
+  if(!amount || amount <= 0){ alert("Sahi amount daalo!"); return; }
+
+  expenses.push({ payer, desc, amount });
+  document.getElementById('descInput').value = '';
+  document.getElementById('amountInput').value = '';
+  render();
+}
+
+function removeExpense(idx){
+  expenses.splice(idx,1);
+  render();
+}
+
+function resetAll(){
+  if(!confirm("Sab data reset ho jayega. Pakka?")) return;
+  people = [];
+  expenses = [];
+  render();
+}
+
+function initials(name){
+  return name.trim().split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase();
+}
+
+function render(){
+  // People chips
+  const chipsEl = document.getElementById('peopleChips');
+  chipsEl.innerHTML = people.length
+    ? people.map(p => `
+        <div class="chip">
+          <span class="avatar">${initials(p)}</span>
+          <span>${escapeHtml(p)}</span>
+          <button onclick="removePerson('${escapeAttr(p)}')" title="Remove">&times;</button>
+        </div>`).join('')
+    : `<span class="empty" style="padding:0;">Abhi koi member nahi &mdash; upar se add karo</span>`;
+
+  // Payer select
+  const sel = document.getElementById('payerSelect');
+  const prev = sel.value;
+  sel.innerHTML = `<option value="">Kisne diya?</option>` + people.map(p => `<option value="${escapeAttr(p)}">${escapeHtml(p)}</option>`).join('');
+  if(people.includes(prev)) sel.value = prev;
+
+  // Expense list
+  const list = document.getElementById('expenseList');
+  list.innerHTML = expenses.length
+    ? expenses.map((e,i) => `
+        <div class="expense-row">
+          <div class="desc">${escapeHtml(e.desc)}<small>Paid by ${escapeHtml(e.payer)}</small></div>
+          <div class="payer">${escapeHtml(e.payer)}</div>
+          <div class="amt">&#8377;${e.amount.toFixed(2)}</div>
+          <button class="ghost" style="padding:6px 10px;" onclick="removeExpense(${i})">Delete</button>
+        </div>`).join('')
+    : `<div class="empty">Koi kharcha add nahi hua abhi tak</div>`;
+
+  computeSummary();
+}
+
+function computeSummary(){
+  const n = people.length;
+  const total = expenses.reduce((s,e) => s + e.amount, 0);
+  const share = n ? total / n : 0;
+
+  // stats
+  document.getElementById('summaryStats').innerHTML = `
+    <div class="stat"><div class="label">Total Kharcha</div><div class="value">&#8377;${total.toFixed(2)}</div></div>
+    <div class="stat"><div class="label">Members</div><div class="value">${n}</div></div>
+    <div class="stat"><div class="label">Per Head Share</div><div class="value">&#8377;${share.toFixed(2)}</div></div>
+  `;
+
+  // per-person paid vs share
+  const balances = {};
+  people.forEach(p => balances[p] = { paid: 0, share, balance: 0 });
+  expenses.forEach(e => { if(balances[e.payer]) balances[e.payer].paid += e.amount; });
+  people.forEach(p => balances[p].balance = balances[p].paid - share);
+
+  const tbody = document.getElementById('summaryTable');
+  tbody.innerHTML = n ? people.map(p => {
+    const b = balances[p];
+    const cls = b.balance > 0.005 ? 'pos' : (b.balance < -0.005 ? 'neg' : 'zero');
+    const sign = b.balance > 0.005 ? '+' : '';
+    return `<tr>
+      <td>${escapeHtml(p)}</td>
+      <td>&#8377;${b.paid.toFixed(2)}</td>
+      <td>&#8377;${b.share.toFixed(2)}</td>
+      <td class="${cls}">${sign}&#8377;${b.balance.toFixed(2)}</td>
+    </tr>`;
+  }).join('') : `<tr><td colspan="4" class="empty">Member add karo summary dekhne ke liye</td></tr>`;
+
+  // Settlement (greedy min-transaction)
+  const settleEl = document.getElementById('settleList');
+  if(n === 0 || total === 0){
+    settleEl.innerHTML = `<div class="empty">Kuch settle karne ko nahi hai</div>`;
+    window._lastBalances = balances;
+    window._lastTotal = total;
+    window._lastShare = share;
+    return;
+  }
+
+  const creditors = [];
+  const debtors = [];
+  people.forEach(p => {
+    const bal = Math.round(balances[p].balance * 100) / 100;
+    if(bal > 0.005) creditors.push({ name:p, amt:bal });
+    else if(bal < -0.005) debtors.push({ name:p, amt:-bal });
+  });
+  creditors.sort((a,b)=>b.amt-a.amt);
+  debtors.sort((a,b)=>b.amt-a.amt);
+
+  const transactions = [];
+  let i=0, j=0;
+  while(i < debtors.length && j < creditors.length){
+    const pay = Math.min(debtors[i].amt, creditors[j].amt);
+    transactions.push({ from: debtors[i].name, to: creditors[j].name, amt: pay });
+    debtors[i].amt -= pay;
+    creditors[j].amt -= pay;
+    if(debtors[i].amt < 0.01) i++;
+    if(creditors[j].amt < 0.01) j++;
+  }
+
+  settleEl.innerHTML = transactions.length
+    ? transactions.map(t => `
+        <div class="settle-item">
+          <b>${escapeHtml(t.from)}</b> <span class="arrow">&#8594;</span> <b>${escapeHtml(t.to)}</b>
+          <span class="amt">&#8377;${t.amt.toFixed(2)}</span>
+        </div>`).join('')
+    : `<div class="empty">Sabka hisaab pehle se barabar hai &#127881;</div>`;
+
+  window._lastBalances = balances;
+  window._lastTransactions = transactions;
+  window._lastTotal = total;
+  window._lastShare = share;
+}
+
+function escapeHtml(s){
+  return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function escapeAttr(s){ return escapeHtml(s).replace(/'/g, "&#39;"); }
+
+function downloadPDF(){
+  if(people.length === 0 || expenses.length === 0){
+    alert("PDF banane ke liye kam se kam ek member aur ek kharcha add karo!");
+    return;
+  }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  const gold = [180, 140, 40];
+  const dark = [20, 30, 45];
+  const green = [30, 120, 90];
+  const red = [180, 70, 60];
+
+  // Header
+  doc.setFillColor(...dark);
+  doc.rect(0,0,210,32,'F');
+  doc.setTextColor(...gold);
+  doc.setFont('times','bold');
+  doc.setFontSize(22);
+  doc.text('SPLIT TOOL', 105, 15, { align:'center' });
+  doc.setFontSize(11);
+  doc.setFont('times','italic');
+  doc.setTextColor(230,225,210);
+  doc.text('Launched by Mr. Abhinandan Singh Rajput', 105, 24, { align:'center' });
+
+  let y = 44;
+  doc.setTextColor(...dark);
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(13);
+  doc.text('Kharcho ki List (Expenses)', 14, y);
+  y += 4;
+  doc.setDrawColor(200);
+  doc.line(14, y, 196, y);
+  y += 8;
+
+  doc.setFontSize(10.5);
+  doc.setFont('helvetica','normal');
+  expenses.forEach((e, idx) => {
+    if(y > 270){ doc.addPage(); y = 20; }
+    doc.text(`${idx+1}. ${e.desc}`, 14, y);
+    doc.text(`Paid by: ${e.payer}`, 105, y);
+    doc.setFont('helvetica','bold');
+    doc.text(`Rs. ${e.amount.toFixed(2)}`, 196, y, { align:'right' });
+    doc.setFont('helvetica','normal');
+    y += 7;
+  });
+
+  y += 4;
+  if(y > 260){ doc.addPage(); y = 20; }
+  doc.setDrawColor(200);
+  doc.line(14, y, 196, y);
+  y += 10;
+
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(12);
+  doc.text(`Total Kharcha: Rs. ${window._lastTotal.toFixed(2)}`, 14, y);
+  doc.text(`Per Head Share: Rs. ${window._lastShare.toFixed(2)}`, 105, y);
+  y += 12;
+
+  doc.setFontSize(13);
+  doc.text('Summary (Kisne Kitna Diya)', 14, y);
+  y += 4;
+  doc.line(14, y, 196, y);
+  y += 8;
+
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(10.5);
+  people.forEach(p => {
+    if(y > 270){ doc.addPage(); y = 20; }
+    const b = window._lastBalances[p];
+    doc.text(p, 14, y);
+    doc.text(`Paid: Rs. ${b.paid.toFixed(2)}`, 80, y);
+    const bal = b.balance;
+    if(bal > 0.005){ doc.setTextColor(...green); doc.text(`Gets back: Rs. ${bal.toFixed(2)}`, 140, y); }
+    else if(bal < -0.005){ doc.setTextColor(...red); doc.text(`Owes: Rs. ${(-bal).toFixed(2)}`, 140, y); }
+    else { doc.setTextColor(120,120,120); doc.text('Settled', 140, y); }
+    doc.setTextColor(...dark);
+    y += 7;
+  });
+
+  y += 6;
+  if(y > 260){ doc.addPage(); y = 20; }
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(13);
+  doc.text('Kisko Kitna Dena Hai (Settlement)', 14, y);
+  y += 4;
+  doc.line(14, y, 196, y);
+  y += 9;
+
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(11);
+  const txns = window._lastTransactions || [];
+  if(txns.length === 0){
+    doc.text('Sabka hisaab pehle se barabar hai.', 14, y);
+    y += 7;
+  } else {
+    txns.forEach(t => {
+      if(y > 270){ doc.addPage(); y = 20; }
+      doc.text(`${t.from}  ->  ${t.to}`, 14, y);
+      doc.setFont('helvetica','bold');
+      doc.text(`Rs. ${t.amt.toFixed(2)}`, 196, y, { align:'right' });
+      doc.setFont('helvetica','normal');
+      y += 8;
+    });
+  }
+
+  doc.setFontSize(9);
+  doc.setTextColor(150);
+  doc.text('Generated by Split Tool - Mr. Abhinandan Singh Rajput', 105, 290, { align:'center' });
+
+  doc.save('Split-Tool-Kharcha-Report.pdf');
+}
+
+render();
+</script>
+</body>
+</html>
