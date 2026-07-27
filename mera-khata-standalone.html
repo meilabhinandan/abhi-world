@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MeraKhata — Income &amp; Expense Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+
+<!-- Firebase (compat SDK, works with plain <script> tags) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<!-- Export libs -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.3/chart.umd.min.js"></script>
+
+<style>
+  :root{
+    --bg:#0A0E16;
+    --bg-grid: rgba(255,255,255,0.025);
+    --panel:#111826;
+    --panel-2:#0D1420;
+    --border: rgba(255,255,255,0.08);
+    --text:#E8EDF6;
+    --text-soft:#8A96AC;
+    --accent:#1FE3A8;
+    --accent-dim: rgba(31,227,168,0.12);
+    --accent2:#4C8DFF;
+    --income:#1FE3A8;
+    --income-bg: rgba(31,227,168,0.10);
+    --expense:#FF5C7A;
+    --expense-bg: rgba(255,92,122,0.10);
+    --radius:12px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(circle at 15% 0%, rgba(76,141,255,0.10), transparent 40%),
+      radial-gradient(circle at 85% 10%, rgba(31,227,168,0.08), transparent 40%),
+      var(--bg);
+    background-attachment:fixed;
+    color:var(--text);
+    font-family:'Inter', sans-serif;
+    min-height:100vh;
+  }
+  .wrap{max-width:1000px;margin:0 auto;padding:28px 18px 70px;}
+  .brand{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:10px;}
+  .brand-left{display:flex;align-items:center;gap:12px;}
+  .logo{
+    width:40px;height:40px;border-radius:10px;
+    background:linear-gradient(135deg, var(--accent), var(--accent2));
+    display:flex;align-items:center;justify-content:center;font-weight:800;color:#04120D;font-family:'Sora',sans-serif;font-size:1.1rem;
+  }
+  .brand h1{font-family:'Sora',sans-serif;font-weight:700;font-size:1.35rem;margin:0;letter-spacing:-.2px;}
+  .brand .sub{font-size:.76rem;color:var(--text-soft);margin-top:1px;}
+  .who{display:flex;align-items:center;gap:10px;}
+  .badge{
+    background:var(--panel);border:1px solid var(--border);color:var(--text);
+    padding:6px 13px;border-radius:999px;font-size:.76rem;font-weight:600;
+    font-family:'IBM Plex Mono',monospace;letter-spacing:.2px;
+  }
+  .badge .dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--accent);margin-right:7px;box-shadow:0 0 8px var(--accent);}
+  .btn{border:none;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;font-size:.86rem;padding:10px 18px;border-radius:9px;transition:transform .08s ease, filter .15s ease;}
+  .btn:active{transform:scale(0.97);}
+  .btn:hover{filter:brightness(1.1);}
+  .btn-primary{background:linear-gradient(135deg, var(--accent), #17c491);color:#04120D;}
+  .btn-blue{background:linear-gradient(135deg, var(--accent2), #3568c9);color:#fff;}
+  .btn-ghost{background:transparent;color:var(--text);border:1.5px solid var(--border);}
+  .btn-danger{background:rgba(255,92,122,0.15);color:var(--expense);border:1px solid rgba(255,92,122,0.3);}
+  .btn-sm{padding:6px 12px;font-size:.76rem;}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:22px;margin-bottom:18px;box-shadow:0 8px 24px rgba(0,0,0,0.25);}
+  .center-screen{min-height:82vh;display:flex;align-items:center;justify-content:center;}
+  .login-card{width:100%;max-width:400px;text-align:center;}
+  .login-card .seal{
+    width:54px;height:54px;border-radius:14px;margin:0 auto 14px;
+    background:linear-gradient(135deg, var(--accent), var(--accent2));
+    display:flex;align-items:center;justify-content:center;font-family:'Sora',sans-serif;font-weight:800;font-size:1.3rem;color:#04120D;
+  }
+  .login-card h2{font-family:'Sora',sans-serif;margin:0 0 4px;font-size:1.4rem;}
+  .login-card p.hint{color:var(--text-soft);font-size:.82rem;margin-top:0;margin-bottom:20px;}
+  label{display:block;font-size:.76rem;font-weight:600;color:var(--text-soft);margin:12px 0 6px;text-align:left;text-transform:uppercase;letter-spacing:.4px;}
+  input,select,textarea{
+    width:100%;padding:11px 13px;border-radius:8px;border:1.5px solid var(--border);
+    font-family:'Inter',sans-serif;font-size:.92rem;background:var(--panel-2);color:var(--text);
+  }
+  input::placeholder{color:#54607A;}
+  input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:1px;}
+  .err{color:var(--expense);font-size:.82rem;margin-top:12px;min-height:16px;}
+  .tabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;}
+  .tab{padding:9px 16px;border-radius:9px;cursor:pointer;font-weight:600;font-size:.84rem;color:var(--text-soft);border:1.5px solid transparent;}
+  .tab.active{background:var(--panel);color:var(--text);border:1.5px solid var(--border);}
+  .tab.active{box-shadow: inset 0 0 0 1px rgba(31,227,168,0.25);}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  @media(max-width:600px){.grid2{grid-template-columns:1fr;}}
+  h3{font-family:'Sora',sans-serif;margin:0 0 14px;font-size:1.08rem;font-weight:600;}
+  table{width:100%;border-collapse:collapse;font-size:.86rem;}
+  th,td{text-align:left;padding:10px 10px;border-bottom:1px solid var(--border);}
+  th{color:var(--text-soft);font-size:.7rem;text-transform:uppercase;letter-spacing:.5px;font-weight:600;}
+  tr:hover td{background:rgba(255,255,255,0.02);}
+  .pill{padding:3px 10px;border-radius:999px;font-size:.7rem;font-weight:700;letter-spacing:.2px;}
+  .pill.income{background:var(--income-bg);color:var(--income);}
+  .pill.expense{background:var(--expense-bg);color:var(--expense);}
+  .amt{font-family:'IBM Plex Mono',monospace;font-weight:600;}
+  .amt.income{color:var(--income);}
+  .amt.expense{color:var(--expense);}
+  .summary-strip{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:18px;}
+  @media(max-width:650px){.summary-strip{grid-template-columns:1fr;}}
+  .stat{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;position:relative;overflow:hidden;}
+  .stat::after{content:'';position:absolute;top:-40%;right:-20%;width:120px;height:120px;border-radius:50%;filter:blur(30px);opacity:.35;}
+  .stat.income::after{background:var(--income);}
+  .stat.expense::after{background:var(--expense);}
+  .stat.net::after{background:var(--accent2);}
+  .stat .label{font-size:.7rem;color:var(--text-soft);text-transform:uppercase;letter-spacing:.6px;font-weight:600;position:relative;}
+  .stat .value{font-family:'IBM Plex Mono',monospace;font-size:1.7rem;font-weight:700;margin-top:6px;position:relative;}
+  .stat.income .value{color:var(--income);}
+  .stat.expense .value{color:var(--expense);}
+  .stat.net .value{color:var(--accent2);}
+  .toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
+  .export-row{display:flex;gap:8px;flex-wrap:wrap;}
+  .empty{text-align:center;padding:34px;color:var(--text-soft);font-size:.88rem;}
+  .msg{font-size:.85rem;padding:10px 13px;border-radius:9px;margin-top:10px;}
+  .msg.ok{background:var(--income-bg);color:var(--income);border:1px solid rgba(31,227,168,0.25);}
+  .msg.bad{background:var(--expense-bg);color:var(--expense);border:1px solid rgba(255,92,122,0.25);}
+  .note{font-size:.78rem;color:var(--text-soft);margin-top:8px;line-height:1.55;}
+  .userlist-item{display:flex;justify-content:space-between;align-items:center;padding:11px 4px;border-bottom:1px solid var(--border);font-size:.88rem;}
+  .userlist-item .uid{font-family:'IBM Plex Mono',monospace;color:var(--text-soft);font-size:.76rem;}
+  .loading{text-align:center;padding:60px 20px;color:var(--text-soft);}
+  .divider{border:none;border-top:1px dashed var(--border);margin:20px 0;}
+  .setup-code{
+    background:#050810;border:1px solid var(--border);border-radius:8px;padding:14px;
+    font-family:'IBM Plex Mono',monospace;font-size:.78rem;color:var(--accent);overflow-x:auto;white-space:pre;
+  }
+  .chart-wrap{max-width:220px;margin:0 auto;}
+</style>
+</head>
+<body>
+<div class="wrap" id="app">
+  <div class="loading">Loading…</div>
+</div>
+
+<script>
+/* =====================================================================
+   1) FIREBASE SETUP — paste your project's config below.
+   Get this from: Firebase Console → Project Settings → General → Your apps → Web app → SDK setup and configuration
+   ===================================================================== */
+const firebaseConfig = {
+  apiKey: "AIzaSyDviVGWIzAkg15El_hW4Jey2KnrEdSSy3g",
+  authDomain: "income-expense-tracker-980a5.firebaseapp.com",
+  projectId: "income-expense-tracker-980a5",
+  storageBucket: "income-expense-tracker-980a5.firebasestorage.app",
+  messagingSenderId: "1084119851021",
+  appId: "1:1084119851021:web:0d0ee79a8eadab34573544"
+};
+
+const OWNER_DEFAULT_ID = '8757681959';
+const OWNER_DEFAULT_PASS = 'Abhi@8757';
+const EMAIL_DOMAIN = 'merakhata.app';
+
+let app, auth, db;
+let currentUserDoc = null; // {uid, loginId, name, role}
+let activeOwnerTab = 'users';
+let activeUserTab = 'add';
+let ownerViewingUid = null;
+let ownerViewingName = '';
+let bulkParsedRows = [];
+let allUsersCache = [];
+let donutChart = null;
+
+function isConfigured(){
+  return firebaseConfig.apiKey && firebaseConfig.apiKey !== 'YOUR_API_KEY_HERE';
+}
+
+function idToEmail(id){ return `${String(id).trim().toLowerCase()}@${EMAIL_DOMAIN}`; }
+function root(){ return document.getElementById('app'); }
+function escapeHtml(s){ return String(s ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+function escapeAttr(s){ return String(s).replace(/'/g, "\\'"); }
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+function currentMonthStr(){ return new Date().toISOString().slice(0,7); }
+function fmt(n){ return Number(n).toLocaleString('en-IN', {minimumFractionDigits:0, maximumFractionDigits:2}); }
+function monthLabel(m){
+  const [y,mo] = m.split('-');
+  const names = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  return `${names[parseInt(mo,10)-1]} ${y}`;
+}
+
+/* ================= INIT ================= */
+function init(){
+  if(!isConfigured()){ renderSetupNeeded(); return; }
+  app = firebase.initializeApp(firebaseConfig);
+  auth = firebase.auth();
+  db = firebase.firestore();
+
+  auth.onAuthStateChanged(async (user) => {
+    if(!user){ currentUserDoc = null; renderLogin(); return; }
+    try{
+      const snap = await db.collection('users').doc(user.uid).get();
+      if(!snap.exists){
+        await auth.signOut();
+        renderLogin('Account not found. Contact the owner to be added.');
+        return;
+      }
+      currentUserDoc = { uid: user.uid, ...snap.data() };
+      if(currentUserDoc.role === 'owner'){ renderOwner(); } else { renderUser(); }
+    } catch(e){
+      console.error(e);
+      renderLogin('Something went wrong loading your profile.');
+    }
+  });
+}
+
+function renderSetupNeeded(){
+  root().innerHTML = `
+  <div class="center-screen">
+    <div class="card" style="max-width:640px;">
+      <h2 style="font-family:'Sora',sans-serif;margin-top:0;">⚙️ One-time setup needed</h2>
+      <p class="note">This site needs a free Firebase backend so your data syncs across devices. Steps:</p>
+      <ol class="note" style="padding-left:18px;">
+        <li>Go to <strong>console.firebase.google.com</strong> → Create a project (free).</li>
+        <li>In the project: <strong>Build → Authentication → Get Started → Email/Password → Enable</strong>.</li>
+        <li><strong>Build → Firestore Database → Create database</strong> (start in production mode).</li>
+        <li>In Firestore → <strong>Rules</strong> tab, paste the rules provided separately and click Publish.</li>
+        <li>Go to <strong>Project settings → General → Your apps → Add app → Web (&lt;/&gt;)</strong>, register it, and copy the <code>firebaseConfig</code> object.</li>
+        <li>Open this HTML file in a text editor, find <code>firebaseConfig</code> near the top of the <code>&lt;script&gt;</code>, and paste your values in.</li>
+        <li>Save the file and re-open it (or re-upload to your host). You're done.</li>
+      </ol>
+      <div class="setup-code">const firebaseConfig = {
+  apiKey: "YOUR_API_KEY_HERE",
+  authDomain: "...",
+  projectId: "...",
+  storageBucket: "...",
+  messagingSenderId: "...",
+  appId: "..."
+};</div>
+    </div>
+  </div>`;
+}
+
+/* ================= LOGIN ================= */
+function renderLogin(err){
+  root().innerHTML = `
+  <div class="center-screen">
+    <div class="card login-card">
+      <div class="seal">₹</div>
+      <h2>MeraKhata</h2>
+      <p class="hint">Sign in to track your income &amp; expenses</p>
+      <form id="loginForm">
+        <label for="lid">Login ID</label>
+        <input id="lid" autocomplete="username" placeholder="Enter your ID" required>
+        <label for="lpass">Password</label>
+        <input id="lpass" type="password" autocomplete="current-password" placeholder="Enter your password" required>
+        <div style="margin-top:18px;">
+          <button class="btn btn-primary" style="width:100%;" type="submit">Sign In</button>
+        </div>
+        <div class="err" id="loginErr">${err || ''}</div>
+      </form>
+      <div id="bootstrapArea"></div>
+    </div>
+  </div>`;
+  document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = document.getElementById('lid').value.trim();
+    const pass = document.getElementById('lpass').value;
+    const errEl = document.getElementById('loginErr');
+    errEl.textContent = '';
+    try{
+      await auth.signInWithEmailAndPassword(idToEmail(id), pass);
+    } catch(e2){
+      errEl.textContent = 'Incorrect ID or password. Please try again.';
+    }
+  });
+  checkOwnerBootstrap();
+}
+
+async function checkOwnerBootstrap(){
+  try{
+    const lockDoc = await db.collection('meta').doc('ownerLock').get();
+    if(!lockDoc.exists){
+      const area = document.getElementById('bootstrapArea');
+      area.innerHTML = `
+        <hr class="divider">
+        <p class="note" style="text-align:center;">No owner account exists yet on this site. Set one up now:</p>
+        <button class="btn btn-blue" style="width:100%;" id="bootstrapBtn">Create Owner Account</button>
+      `;
+      document.getElementById('bootstrapBtn').addEventListener('click', renderBootstrapForm);
+    }
+  } catch(e){ console.error(e); }
+}
+
+function renderBootstrapForm(){
+  const area = document.getElementById('bootstrapArea');
+  area.innerHTML = `
+    <hr class="divider">
+    <form id="bootstrapForm" style="text-align:left;">
+      <label>Owner Name</label>
+      <input id="bName" required placeholder="Your name" value="Owner">
+      <label>Owner Login ID</label>
+      <input id="bId" required value="${OWNER_DEFAULT_ID}">
+      <label>Owner Password</label>
+      <input id="bPass" required value="${OWNER_DEFAULT_PASS}">
+      <div style="margin-top:14px;"><button class="btn btn-primary" style="width:100%;" type="submit">Create &amp; Sign In</button></div>
+      <div class="msg" id="bootstrapMsg" style="display:none;"></div>
+    </form>
+  `;
+  document.getElementById('bootstrapForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = document.getElementById('bName').value.trim();
+    const id = document.getElementById('bId').value.trim();
+    const pass = document.getElementById('bPass').value;
+    const msgEl = document.getElementById('bootstrapMsg');
+    try{
+      const cred = await auth.createUserWithEmailAndPassword(idToEmail(id), pass);
+      await db.collection('users').doc(cred.user.uid).set({
+        loginId: id, name, role: 'owner', createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      await db.collection('meta').doc('ownerLock').set({ locked: true });
+      // onAuthStateChanged will pick this up and render the dashboard automatically
+    } catch(e2){
+      msgEl.style.display = 'block'; msgEl.className = 'msg bad';
+      msgEl.textContent = e2.message || 'Could not create owner account.';
+    }
+  });
+}
+
+function logout(){
+  auth.signOut();
+  ownerViewingUid = null;
+  bulkParsedRows = [];
+}
+
+function topBar(roleLabel){
+  return `
+  <div class="brand">
+    <div class="brand-left">
+      <div class="logo">₹</div>
+      <div>
+        <h1>MeraKhata</h1>
+        <div class="sub">Income &amp; Expense Tracker</div>
+      </div>
+    </div>
+    <div class="who">
+      <span class="badge"><span class="dot"></span>${roleLabel} · ${escapeHtml(currentUserDoc.name)}</span>
+      <button class="btn btn-ghost btn-sm" onclick="logout()">Log Out</button>
+    </div>
+  </div>`;
+}
+
+/* ================= OWNER DASHBOARD ================= */
+async function renderOwner(){
+  root().innerHTML = `
+    ${topBar('Owner')}
+    <div class="tabs">
+      <div class="tab ${activeOwnerTab==='users'?'active':''}" onclick="setOwnerTab('users')">Manage Users</div>
+      <div class="tab ${activeOwnerTab==='data'?'active':''}" onclick="setOwnerTab('data')">All Data</div>
+      <div class="tab ${activeOwnerTab==='mine'?'active':''}" onclick="setOwnerTab('mine')">My Entries</div>
+    </div>
+    <div id="ownerTabBody"></div>
+  `;
+  renderOwnerTabBody();
+}
+function setOwnerTab(tab){ activeOwnerTab = tab; renderOwnerTabBody(); }
+
+async function fetchAllUsers(){
+  const snap = await db.collection('users').get();
+  allUsersCache = snap.docs.map(d => ({ uid: d.id, ...d.data() }));
+  return allUsersCache;
+}
+
+async function renderOwnerTabBody(){
+  const body = document.getElementById('ownerTabBody');
+  if(activeOwnerTab === 'users'){
+    body.innerHTML = `
+      <div class="card">
+        <h3>Add a new user</h3>
+        <form id="createUserForm">
+          <div class="grid2">
+            <div><label>Name</label><input id="nuName" required placeholder="e.g. Ramesh"></div>
+            <div><label>Login ID</label><input id="nuId" required placeholder="e.g. 9876543210"></div>
+          </div>
+          <div class="grid2">
+            <div><label>Password</label><input id="nuPass" required placeholder="Set a password"></div>
+            <div style="align-self:end;"><button class="btn btn-primary" style="width:100%;" type="submit">Add User</button></div>
+          </div>
+          <div class="msg" id="cuMsg" style="display:none;"></div>
+        </form>
+      </div>
+      <div class="card">
+        <h3>All Users</h3>
+        <div id="userListWrap"><div class="empty">Loading…</div></div>
+      </div>
+    `;
+    document.getElementById('createUserForm').addEventListener('submit', createUserSubmit);
+    await renderUserList();
+  } else if(activeOwnerTab === 'data'){
+    await renderOwnerAllData();
+  } else if(activeOwnerTab === 'mine'){
+    renderAddEntryCard('ownerTabBody', currentUserDoc.uid);
+  }
+}
+
+async function renderUserList(){
+  const wrap = document.getElementById('userListWrap');
+  const users = await fetchAllUsers();
+  if(users.length === 0){ wrap.innerHTML = `<div class="empty">No users yet.</div>`; return; }
+  wrap.innerHTML = users.map(u => `
+    <div class="userlist-item">
+      <div>
+        <div><strong>${escapeHtml(u.name)}</strong> ${u.role==='owner' ? '<span class="pill income">Owner</span>' : ''}</div>
+        <div class="uid">ID: ${escapeHtml(u.loginId)}</div>
+      </div>
+      ${u.role !== 'owner' ? `<button class="btn btn-danger btn-sm" onclick="removeUser('${escapeAttr(u.uid)}')">Remove</button>` : ''}
+    </div>
+  `).join('');
+}
+
+async function createUserSubmit(e){
+  e.preventDefault();
+  const name = document.getElementById('nuName').value.trim();
+  const id = document.getElementById('nuId').value.trim();
+  const pass = document.getElementById('nuPass').value;
+  const msgEl = document.getElementById('cuMsg');
+  if(!name || !id || !pass) return;
+  msgEl.style.display = 'block'; msgEl.className = 'msg'; msgEl.textContent = 'Creating…';
+  try{
+    // use a secondary Firebase app instance so the owner's own session isn't disturbed
+    const secondary = firebase.initializeApp(firebaseConfig, 'Secondary_' + Date.now());
+    const secAuth = secondary.auth();
+    const cred = await secAuth.createUserWithEmailAndPassword(idToEmail(id), pass);
+    await db.collection('users').doc(cred.user.uid).set({
+      loginId: id, name, role: 'user', createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    await secAuth.signOut();
+    await secondary.delete();
+    msgEl.className = 'msg ok';
+    msgEl.textContent = `User "${name}" created. They can now sign in with ID ${id}.`;
+    document.getElementById('createUserForm').reset();
+    await renderUserList();
+  } catch(err){
+    msgEl.className = 'msg bad';
+    msgEl.textContent = err.message || 'Could not create user.';
+  }
+}
+
+async function removeUser(uid){
+  if(!confirm('Remove this user? Their saved entries stay in the system, but they will no longer be able to sign in.')) return;
+  await db.collection('users').doc(uid).delete();
+  await renderUserList();
+}
+
+async function renderOwnerAllData(){
+  const body = document.getElementById('ownerTabBody');
+  const users = await fetchAllUsers();
+  if(!ownerViewingUid) ownerViewingUid = users[0]?.uid || null;
+  body.innerHTML = `
+    <div class="card">
+      <div class="grid2">
+        <div>
+          <label>Select User</label>
+          <select id="ownerUserSelect">
+            ${users.map(u => `<option value="${escapeAttr(u.uid)}" ${u.uid===ownerViewingUid?'selected':''}>${escapeHtml(u.name)} (${escapeHtml(u.loginId)})</option>`).join('')}
+          </select>
+        </div>
+        <div>
+          <label>Month</label>
+          <input id="ownerMonth" type="month" value="${currentMonthStr()}">
+        </div>
+      </div>
+    </div>
+    <div id="ownerDataArea"><div class="empty">Loading…</div></div>
+  `;
+  document.getElementById('ownerUserSelect').addEventListener('change', (e)=>{ ownerViewingUid = e.target.value; renderOwnerDataArea(); });
+  document.getElementById('ownerMonth').addEventListener('change', renderOwnerDataArea);
+  await renderOwnerDataArea();
+}
+
+async function renderOwnerDataArea(){
+  const month = document.getElementById('ownerMonth').value || currentMonthStr();
+  const uid = ownerViewingUid;
+  const user = allUsersCache.find(u => u.uid === uid);
+  const entries = await fetchEntries(uid);
+  const filtered = entries.filter(e => e.date.startsWith(month));
+  renderLedgerBlock(document.getElementById('ownerDataArea'), filtered, user?.name || 'User', month, uid, true);
+}
+
+/* ================= USER DASHBOARD ================= */
+function renderUser(){
+  root().innerHTML = `
+    ${topBar('Team Member')}
+    <div class="tabs">
+      <div class="tab ${activeUserTab==='add'?'active':''}" onclick="setUserTab('add')">Add Entry</div>
+      <div class="tab ${activeUserTab==='bulk'?'active':''}" onclick="setUserTab('bulk')">Bulk Upload (Excel)</div>
+      <div class="tab ${activeUserTab==='summary'?'active':''}" onclick="setUserTab('summary')">My Summary</div>
+    </div>
+    <div id="userTabBody"></div>
+  `;
+  renderUserTabBody();
+}
+function setUserTab(tab){ activeUserTab = tab; renderUserTabBody(); }
+
+function renderUserTabBody(){
+  if(activeUserTab === 'add'){
+    renderAddEntryCard('userTabBody', currentUserDoc.uid);
+  } else if(activeUserTab === 'bulk'){
+    renderBulkUploadCard();
+  } else if(activeUserTab === 'summary'){
+    renderMySummary();
+  }
+}
+
+/* ---- Single entry form (shared by owner+user) ---- */
+function renderAddEntryCard(containerId, uid){
+  const wrap = document.getElementById(containerId);
+  wrap.innerHTML = `
+    <div class="card">
+      <h3>Add a new entry</h3>
+      <form id="entryForm">
+        <div class="grid2">
+          <div><label>Date</label><input id="eDate" type="date" value="${todayStr()}" required></div>
+          <div><label>Type</label>
+            <select id="eType">
+              <option value="income">Income</option>
+              <option value="expense">Expense</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid2">
+          <div><label>Category</label><input id="eCat" placeholder="e.g. Salary, Rent, Groceries" required></div>
+          <div><label>Amount (₹)</label><input id="eAmt" type="number" step="0.01" min="0" required></div>
+        </div>
+        <label>Note (optional)</label>
+        <input id="eNote" placeholder="Any extra detail">
+        <div style="margin-top:16px;">
+          <button class="btn btn-primary" type="submit">Save Entry</button>
+        </div>
+        <div class="msg" id="entryMsg" style="display:none;"></div>
+      </form>
+    </div>
+  `;
+  document.getElementById('entryForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const date = document.getElementById('eDate').value;
+    const type = document.getElementById('eType').value;
+    const category = document.getElementById('eCat').value.trim();
+    const amount = parseFloat(document.getElementById('eAmt').value);
+    const note = document.getElementById('eNote').value.trim();
+    const msgEl = document.getElementById('entryMsg');
+    if(!date || !category || isNaN(amount)) return;
+    try{
+      await db.collection('entries').add({
+        ownerUid: uid, date, type, category, amount, note,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      msgEl.style.display='block'; msgEl.className='msg ok'; msgEl.textContent = 'Entry saved ✓';
+      document.getElementById('entryForm').reset();
+      document.getElementById('eDate').value = todayStr();
+    } catch(err){
+      msgEl.style.display='block'; msgEl.className='msg bad'; msgEl.textContent = err.message || 'Could not save entry.';
+    }
+  });
+}
+
+/* ---- Bulk upload ---- */
+function renderBulkUploadCard(){
+  const wrap = document.getElementById('userTabBody');
+  wrap.innerHTML = `
+    <div class="card">
+      <h3>Bulk import from Excel</h3>
+      <p class="note">Download the sample file first, fill in your entries (one row each), then upload it here. Columns: <strong>Date, Type, Category, Amount, Note</strong></p>
+      <button class="btn btn-blue btn-sm" onclick="downloadSampleExcel()">📥 Download Sample Excel</button>
+      <hr class="divider">
+      <label>Choose Excel file (.xlsx)</label>
+      <input type="file" id="bulkFile" accept=".xlsx,.xls">
+      <div id="bulkPreviewWrap"></div>
+      <div class="msg" id="bulkMsg" style="display:none;"></div>
+    </div>
+  `;
+  document.getElementById('bulkFile').addEventListener('change', handleBulkFile);
+}
+
+function downloadSampleExcel(){
+  const sample = [
+    { Date: '2026-07-01', Type: 'Income', Category: 'Salary', Amount: 50000, Note: 'July salary' },
+    { Date: '2026-07-03', Type: 'Expense', Category: 'Groceries', Amount: 2500, Note: 'Monthly groceries' },
+    { Date: '2026-07-05', Type: 'Expense', Category: 'Rent', Amount: 12000, Note: 'House rent' },
+    { Date: '2026-07-08', Type: 'Income', Category: 'Freelance', Amount: 8000, Note: 'Side project' },
+  ];
+  const ws = XLSX.utils.json_to_sheet(sample);
+  ws['!cols'] = [{wch:12},{wch:10},{wch:16},{wch:10},{wch:22}];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Sample');
+  XLSX.writeFile(wb, 'bulk_entry_sample.xlsx');
+}
+
+function handleBulkFile(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (evt) => {
+    try{
+      const data = new Uint8Array(evt.target.result);
+      const wb = XLSX.read(data, { type: 'array' });
+      const sheet = wb.Sheets[wb.SheetNames[0]];
+      const json = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+      const parsed = [];
+      const errors = [];
+      json.forEach((row, i) => {
+        const dateRaw = row.Date || row.date;
+        const typeRaw = String(row.Type || row.type || '').toLowerCase();
+        const category = row.Category || row.category;
+        const amount = parseFloat(row.Amount || row.amount);
+        const note = row.Note || row.note || '';
+        let date = normalizeDate(dateRaw);
+        let type = typeRaw.startsWith('inc') ? 'income' : (typeRaw.startsWith('exp') ? 'expense' : null);
+        if(!date || !type || !category || isNaN(amount)){
+          errors.push(`Row ${i+2}: incomplete or invalid, skipped.`);
+          return;
+        }
+        parsed.push({ date, type, category: String(category), amount, note: String(note) });
+      });
+      bulkParsedRows = parsed;
+      const wrap = document.getElementById('bulkPreviewWrap');
+      wrap.innerHTML = `
+        <p class="note">${parsed.length} valid entries found ${errors.length ? `(${errors.length} row(s) skipped)` : ''}</p>
+        ${parsed.length ? `<div class="card" style="padding:10px;"><table>
+          <thead><tr><th>Date</th><th>Type</th><th>Category</th><th>Amount</th><th>Note</th></tr></thead>
+          <tbody>${parsed.slice(0,50).map(r => `<tr><td>${r.date}</td><td>${r.type}</td><td>${escapeHtml(r.category)}</td><td>₹${r.amount}</td><td>${escapeHtml(r.note)}</td></tr>`).join('')}</tbody>
+        </table></div>` : ''}
+        ${parsed.length ? `<button class="btn btn-primary" style="margin-top:12px;" onclick="confirmBulkImport()">Save all entries</button>` : ''}
+      `;
+    } catch(err){
+      document.getElementById('bulkPreviewWrap').innerHTML = `<div class="msg bad">Could not read this file. Please choose a valid Excel file.</div>`;
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function normalizeDate(v){
+  if(!v) return null;
+  if(v instanceof Date) return v.toISOString().slice(0,10);
+  if(typeof v === 'number'){
+    const d = XLSX.SSF.parse_date_code(v);
+    if(!d) return null;
+    return `${d.y}-${String(d.m).padStart(2,'0')}-${String(d.d).padStart(2,'0')}`;
+  }
+  const s = String(v).trim();
+  const m1 = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if(m1) return `${m1[1]}-${m1[2].padStart(2,'0')}-${m1[3].padStart(2,'0')}`;
+  const m2 = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+  if(m2) return `${m2[3]}-${m2[2].padStart(2,'0')}-${m2[1].padStart(2,'0')}`;
+  return null;
+}
+
+async function confirmBulkImport(){
+  const msgEl = document.getElementById('bulkMsg');
+  msgEl.style.display = 'block'; msgEl.className = 'msg'; msgEl.textContent = 'Saving…';
+  try{
+    const chunks = [];
+    for(let i=0;i<bulkParsedRows.length;i+=400) chunks.push(bulkParsedRows.slice(i,i+400));
+    for(const chunk of chunks){
+      const batch = db.batch();
+      chunk.forEach(row => {
+        const ref = db.collection('entries').doc();
+        batch.set(ref, { ownerUid: currentUserDoc.uid, ...row, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+      });
+      await batch.commit();
+    }
+    msgEl.className = 'msg ok';
+    msgEl.textContent = `${bulkParsedRows.length} entries imported successfully ✓`;
+    bulkParsedRows = [];
+    document.getElementById('bulkPreviewWrap').innerHTML = '';
+    document.getElementById('bulkFile').value = '';
+  } catch(err){
+    msgEl.className = 'msg bad';
+    msgEl.textContent = err.message || 'Could not save entries.';
+  }
+}
+
+/* ---- My summary (user) ---- */
+async function renderMySummary(){
+  const wrap = document.getElementById('userTabBody');
+  const month = currentMonthStr();
+  wrap.innerHTML = `
+    <div class="card">
+      <label>Month</label>
+      <input id="myMonth" type="month" value="${month}">
+    </div>
+    <div id="mySummaryArea"><div class="empty">Loading…</div></div>
+  `;
+  document.getElementById('myMonth').addEventListener('change', updateMySummary);
+  await updateMySummary();
+}
+
+async function updateMySummary(){
+  const month = document.getElementById('myMonth').value || currentMonthStr();
+  const entries = await fetchEntries(currentUserDoc.uid);
+  const filtered = entries.filter(e => e.date.startsWith(month));
+  renderLedgerBlock(document.getElementById('mySummaryArea'), filtered, currentUserDoc.name, month, currentUserDoc.uid, true);
+}
+
+async function fetchEntries(uid){
+  const snap = await db.collection('entries').where('ownerUid','==',uid).get();
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+
+/* ---- Shared ledger renderer (stats + chart + table + export) ---- */
+function renderLedgerBlock(container, entries, ownerName, month, uid, allowDelete){
+  const income = entries.filter(e=>e.type==='income').reduce((s,e)=>s+Number(e.amount),0);
+  const expense = entries.filter(e=>e.type==='expense').reduce((s,e)=>s+Number(e.amount),0);
+  const net = income - expense;
+  const sorted = [...entries].sort((a,b)=> a.date.localeCompare(b.date));
+
+  container.innerHTML = `
+    <div class="summary-strip">
+      <div class="stat income"><div class="label">Total Income</div><div class="value">₹${fmt(income)}</div></div>
+      <div class="stat expense"><div class="label">Total Expense</div><div class="value">₹${fmt(expense)}</div></div>
+      <div class="stat net"><div class="label">Net Savings</div><div class="value">₹${fmt(net)}</div></div>
+    </div>
+    ${(income>0 || expense>0) ? `<div class="card"><div class="chart-wrap"><canvas id="donutChart" height="220"></canvas></div></div>` : ''}
+    <div class="card">
+      <div class="toolbar">
+        <h3 style="margin:0;">${escapeHtml(ownerName)} — ${monthLabel(month)}</h3>
+        <div class="export-row">
+          <button class="btn btn-ghost btn-sm" onclick='exportExcelData(${JSON.stringify(sorted)}, "${ownerName}_${month}")'>Excel</button>
+          <button class="btn btn-ghost btn-sm" onclick='exportPdfData(${JSON.stringify(sorted)}, "${escapeAttr(ownerName)}", "${month}", ${income}, ${expense}, ${net})'>PDF</button>
+          <button class="btn btn-ghost btn-sm" onclick='exportWordData(${JSON.stringify(sorted)}, "${escapeAttr(ownerName)}", "${month}", ${income}, ${expense}, ${net})'>Word</button>
+        </div>
+      </div>
+      ${sorted.length === 0 ? `<div class="empty">No entries for this month yet.</div>` : `
+      <table>
+        <thead><tr><th>Date</th><th>Type</th><th>Category</th><th>Amount</th><th>Note</th>${allowDelete?'<th></th>':''}</tr></thead>
+        <tbody>
+          ${sorted.map(e => `
+            <tr>
+              <td>${e.date}</td>
+              <td><span class="pill ${e.type}">${e.type==='income'?'Income':'Expense'}</span></td>
+              <td>${escapeHtml(e.category)}</td>
+              <td class="amt ${e.type}">₹${fmt(e.amount)}</td>
+              <td>${escapeHtml(e.note||'')}</td>
+              ${allowDelete ? `<td><button class="btn btn-danger btn-sm" onclick="deleteEntry('${escapeAttr(e.id)}')">✕</button></td>` : ''}
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>`}
+    </div>
+  `;
+
+  if(income>0 || expense>0){
+    const ctx = document.getElementById('donutChart');
+    if(donutChart) donutChart.destroy();
+    donutChart = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Income', 'Expense'],
+        datasets: [{ data: [income, expense], backgroundColor: ['#1FE3A8', '#FF5C7A'], borderWidth: 0 }]
+      },
+      options: {
+        plugins: { legend: { labels: { color: '#E8EDF6', font: { family: 'Inter' } } } },
+        cutout: '68%'
+      }
+    });
+  }
+}
+
+async function deleteEntry(entryId){
+  if(!confirm('Delete this entry?')) return;
+  await db.collection('entries').doc(entryId).delete();
+  if(currentUserDoc.role === 'owner'){ renderOwnerDataArea(); } else { updateMySummary(); }
+}
+
+/* ================= EXPORTS ================= */
+function exportExcelData(rows, filenameBase){
+  const data = rows.map(r => ({ Date: r.date, Type: r.type === 'income' ? 'Income' : 'Expense', Category: r.category, Amount: r.amount, Note: r.note || '' }));
+  const ws = XLSX.utils.json_to_sheet(data);
+  ws['!cols'] = [{wch:12},{wch:10},{wch:16},{wch:10},{wch:24}];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Ledger');
+  XLSX.writeFile(wb, `${filenameBase.replace(/\s+/g,'_')}.xlsx`);
+}
+
+function exportPdfData(rows, name, month, income, expense, net){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  doc.setFontSize(14);
+  doc.text(`${name} — ${monthLabel(month)}`, 14, 16);
+  doc.setFontSize(10);
+  doc.text(`Income: Rs.${fmt(income)}   Expense: Rs.${fmt(expense)}   Net: Rs.${fmt(net)}`, 14, 23);
+  doc.autoTable({
+    startY: 28,
+    head: [['Date','Type','Category','Amount','Note']],
+    body: rows.map(r => [r.date, r.type==='income'?'Income':'Expense', r.category, `Rs.${fmt(r.amount)}`, r.note||'']),
+    styles: { fontSize: 9 },
+    headStyles: { fillColor: [17,24,38] },
+  });
+  doc.save(`${name.replace(/\s+/g,'_')}_${month}.pdf`);
+}
+
+function exportWordData(rows, name, month, income, expense, net){
+  const tableRows = rows.map(r => `<tr>
+    <td>${r.date}</td><td>${r.type==='income'?'Income':'Expense'}</td><td>${escapeHtml(r.category)}</td>
+    <td>Rs.${fmt(r.amount)}</td><td>${escapeHtml(r.note||'')}</td></tr>`).join('');
+  const html = `
+    <h2>${escapeHtml(name)} — ${monthLabel(month)}</h2>
+    <p><strong>Income:</strong> Rs.${fmt(income)} &nbsp; <strong>Expense:</strong> Rs.${fmt(expense)} &nbsp; <strong>Net:</strong> Rs.${fmt(net)}</p>
+    <table border="1" cellspacing="0" cellpadding="6" style="border-collapse:collapse;width:100%;font-family:sans-serif;font-size:12px;">
+      <tr style="background:#111826;color:#fff;"><th>Date</th><th>Type</th><th>Category</th><th>Amount</th><th>Note</th></tr>
+      ${tableRows}
+    </table>`;
+  const pre = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Ledger</title></head><body>";
+  const post = "</body></html>";
+  const blob = new Blob(['\ufeff', pre + html + post], { type: 'application/msword' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `${name.replace(/\s+/g,'_')}_${month}.doc`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+init();
+</script>
+</body>
+</html>
