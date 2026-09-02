@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hindu Calendar 2025 — Premium Print Edition</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,600&family=Playfair+Display:wght@600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700&family=Lora:wght@400;500;600&family=Great+Vibes&display=swap" rel="stylesheet">
+<!-- Export libraries: PDF (html2canvas + jsPDF) and Excel (SheetJS) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  :root{
+    --cream:      #F8EFDC;
+    --cream-2:    #F3E6C7;
+    --paper:      #FCF6E8;
+    --maroon:     #7A1220;
+    --maroon-2:   #591019;
+    --navy:       #16233D;
+    --navy-2:     #0E1728;
+    --gold:       #B8860B;
+    --gold-2:     #D9A73B;
+    --gold-line:  #C8A24B;
+    --ink:        #3A2A16;
+    --ink-soft:   #7C6A4F;
+    --red:        #B3202E;
+    --green-hdr:  #234D33;
+    --circle:     #F6CE4E;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; background:#7d786f; font-family:'Lora',serif; color:var(--ink); }
+  .devanagari{ font-family:'Noto Sans Devanagari','Lora',serif; }
+  h1,h2,h3,.display{ font-family:'Playfair Display', serif; }
+
+  /* ============ TOOLBAR ============ */
+  .toolbar{
+    position:sticky; top:0; z-index:80;
+    display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:center;
+    background:linear-gradient(180deg, var(--navy-2), var(--navy));
+    padding:12px 16px; box-shadow:0 4px 16px rgba(0,0,0,.35);
+  }
+  .toolbar label{ color:var(--gold-2); font-size:12.5px; margin-right:6px; }
+  .toolbar select, .toolbar button{
+    font-family:'Lora',serif; border:1px solid var(--gold); background:var(--cream);
+    color:var(--navy-2); padding:7px 13px; border-radius:6px; cursor:pointer; font-size:13px;
+    transition:transform .15s ease, background .2s ease;
+  }
+  .toolbar select:hover, .toolbar button:hover:not(:disabled){ background:var(--gold-2); transform:translateY(-1px); }
+  .toolbar button.primary{ background:var(--maroon); color:#fff; font-weight:600; border-color:var(--gold-2); }
+  .toolbar button:disabled{ opacity:.6; cursor:wait; }
+  .toolbar input[type=file]{ display:none; }
+  .toolbar .divider{ width:1px; height:26px; background:rgba(216,167,59,.4); margin:0 4px; }
+
+  /* ============ PAGE / A4 FRAME (fixed, exact page size) ============ */
+  .page-wrap{ display:flex; justify-content:center; padding:30px 10px 50px; }
+  #printFrame{
+    position:relative; width:210mm; height:297mm; overflow:hidden;
+    background:var(--paper);
+    box-shadow:0 20px 55px rgba(0,0,0,.35);
+    border:1px solid var(--gold-line);
+    -webkit-print-color-adjust:exact; print-color-adjust:exact;
+  }
+  .inner-border{ position:absolute; inset:5mm; border:1.2px solid var(--gold-line); pointer-events:none; z-index:6; }
+
+  /* #sheet is the scalable content layer: JS sets its width/transform so
+     it always fits exactly inside the fixed 297mm-tall frame -> guarantees ONE page. */
+  #sheet{
+    position:absolute; top:0; left:0; width:210mm;
+    display:flex; flex-direction:column;
+    transform-origin:top left;
+  }
+
+  /* ============ TOP GRID: temple photo | badge+festivals ============ */
+  .top-grid{ display:grid; grid-template-columns:64% 36%; flex:0 0 auto; align-items:stretch; }
+  .left-col{ display:flex; flex-direction:column; padding:6mm 5mm 3mm 7mm; min-height:0; }
+  .right-col{ display:flex; flex-direction:column; padding:6mm 6mm 3mm 3mm; min-height:0; }
+
+  .temple-header{
+    position:relative; height:46mm; border-radius:4px; overflow:hidden;
+    background-size:cover; background-position:center 30%; background-repeat:no-repeat;
+    background-image:
+      linear-gradient(to bottom, rgba(248,239,220,0) 45%, rgba(248,239,220,.55) 78%, rgba(248,239,220,1) 100%),
+      url('https://images.unsplash.com/photo-1548013146-72479768bada?q=80&w=1200&auto=format&fit=crop');
+  }
+  .temple-header.stretch{ background-size:100% 100%; }
+  .temple-header .top-line{
+    position:absolute; top:6px; left:0; right:0; text-align:center; font-size:11px; color:var(--maroon);
+    letter-spacing:.06em;
+  }
+  .temple-header .year-badge{ position:absolute; top:8px; left:10px; text-align:left; }
+  .temple-header .year-badge .yr{ font-family:'Playfair Display',serif; font-weight:800; font-size:26px; color:var(--maroon-2); line-height:1; }
+  .temple-header .year-badge .vs{ font-size:10px; color:var(--ink-soft); margin-top:1px; }
+  .deco-leaf{ position:absolute; top:-2px; width:34px; opacity:.9; }
+  .deco-leaf.l{ left:-4px; } .deco-leaf.r{ right:-4px; transform:scaleX(-1); }
+
+  .month-heading{ text-align:center; margin:3mm 0 1.5mm; position:relative; }
+  .month-heading .flourish{ display:flex; align-items:center; justify-content:center; gap:8px; }
+  .month-heading h2{ margin:0; font-size:30px; letter-spacing:.09em; color:var(--maroon-2); font-weight:800; }
+  .month-heading .hindi-name{ font-family:'Noto Sans Devanagari',serif; font-size:15px; color:var(--maroon); margin-top:-2px; }
+  .month-heading .rule{ width:70%; margin:2px auto 0; border:none; border-top:1px solid var(--gold-line); }
+
+  table.cal{ width:100%; border-collapse:collapse; table-layout:fixed; }
+  table.cal th{ padding:3px 1px; text-align:center; color:#fff; font-weight:600; }
+  table.cal th .en{ display:block; font-family:'Lora',serif; font-size:11px; letter-spacing:.03em; }
+  table.cal th .hi{ display:block; font-family:'Noto Sans Devanagari',serif; font-size:9.5px; font-weight:400; opacity:.9; }
+  table.cal td{ border:1px solid var(--gold-line); position:relative; vertical-align:top; background:var(--paper); }
+  table.cal td.empty{ background:var(--cream-2); opacity:.4; }
+  .cell-inner{ padding:2px 3px; height:100%; }
+  .date-num{ font-family:'Playfair Display',serif; font-weight:700; display:inline-block; color:var(--ink); }
+  table.cal td.sun .date-num{ color:var(--red); }
+  table.cal td .date-num.hl{ background:var(--circle); border-radius:50%; color:var(--maroon-2); display:inline-flex; align-items:center; justify-content:center; }
+  .panchang{ display:block; color:var(--ink-soft); font-style:normal; }
+  .fest-name{ display:block; font-weight:700; color:var(--red); }
+
+  #mainCalendar table.cal th{ background:var(--maroon); padding:4px 1px; }
+  #mainCalendar table.cal th.sun{ background:var(--maroon-2); }
+  #mainCalendar table.cal td{ height:14.6mm; }
+  #mainCalendar .date-num{ font-size:17px; line-height:1; }
+  #mainCalendar .date-num.hl{ width:22px; height:22px; font-size:15px; }
+  #mainCalendar .panchang{ font-size:7px; margin-top:1px; line-height:1.05; }
+  #mainCalendar .fest-name{ font-size:7px; line-height:1.05; }
+
+  .badge{
+    position:relative; height:46mm; border-radius:16px;
+    background:linear-gradient(180deg, var(--navy), var(--navy-2));
+    border:2px solid var(--gold-2); box-shadow: inset 0 0 0 3px rgba(216,167,59,.25);
+    display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;
+    color:var(--gold-2); padding:4px 8px;
+  }
+  .badge::before, .badge::after{
+    content:""; position:absolute; left:50%; transform:translateX(-50%);
+    width:14px; height:14px; background:var(--navy); border:2px solid var(--gold-2); border-radius:3px;
+  }
+  .badge::before{ top:-8px; transform:translateX(-50%) rotate(45deg); }
+  .badge::after{ bottom:-8px; transform:translateX(-50%) rotate(45deg); }
+  .badge .tagline{ font-size:8px; letter-spacing:.08em; color:var(--gold-2); margin-bottom:4px; }
+  .badge .title1{ font-family:'Playfair Display',serif; font-weight:700; font-size:17px; letter-spacing:.06em; color:#fff; }
+  .badge .title2{ font-family:'Playfair Display',serif; font-weight:800; font-size:22px; letter-spacing:.04em; color:var(--gold-2); margin-top:2px; }
+
+  .fest-panel{ margin-top:3mm; flex:1 1 auto; min-height:0; display:flex; flex-direction:column; }
+  .ribbon{
+    background:var(--red); color:#fff; font-size:10.5px; font-weight:700; letter-spacing:.03em;
+    padding:5px 10px 5px 12px; clip-path:polygon(0 0,100% 0,93% 50%,100% 100%,0 100%);
+  }
+  .fest-rows{ margin-top:5px; flex:1 1 auto; overflow:hidden; display:flex; flex-direction:column; gap:3.2px; }
+  .fest-row{ display:flex; align-items:baseline; gap:6px; font-size:9.5px; line-height:1.15; }
+  .fest-row .icon{ width:14px; text-align:center; flex:0 0 auto; }
+  .fest-row .fdate{ flex:0 0 34px; color:var(--ink-soft); font-weight:600; }
+  .fest-row .fname{ color:var(--ink); }
+  .fest-more{ font-size:8.5px; color:var(--ink-soft); font-style:italic; margin-top:2px; }
+
+  .blessing{ text-align:center; margin-top:5mm; }
+  .blessing .lotus{ font-size:13px; color:var(--gold); }
+  .blessing p{ font-family:'Noto Sans Devanagari',serif; font-size:9px; margin:2px 0; color:var(--maroon-2); line-height:1.3; }
+
+  .mini-row{ display:flex; gap:5mm; padding:0 7mm 2mm; flex:0 0 auto; }
+  .mini-cal{ flex:1; min-width:0; }
+  .mini-cal .mini-title{
+    display:flex; align-items:center; justify-content:center; gap:6px;
+    color:#fff; font-family:'Playfair Display',serif; font-weight:700; font-size:12.5px;
+    padding:4px 6px; border-radius:5px 5px 0 0;
+  }
+  .mini-cal.a .mini-title{ background:var(--navy); }
+  .mini-cal.b .mini-title{ background:var(--green-hdr); }
+  .mini-cal .mini-title .vs-sub{ font-size:8px; font-weight:400; opacity:.85; }
+  .mini-cal table.cal th{ background:var(--navy-2); padding:2px 1px; }
+  .mini-cal.b table.cal th{ background:#173726; }
+  .mini-cal table.cal th .en{ font-size:8.5px; }
+  .mini-cal table.cal th .hi{ font-size:7.3px; }
+  .mini-cal table.cal td{ height:8.4mm; }
+  .mini-cal .date-num{ font-size:10.5px; }
+  .mini-cal .date-num.hl{ width:14px; height:14px; font-size:9px; }
+  .mini-cal .panchang{ font-size:5.2px; }
+  .mini-cal .fest-name{ font-size:5.2px; }
+
+  /* ============ FULL YEAR FESTIVAL LIST (fills leftover space) ============ */
+  .year-fest-panel{ margin:2mm 7mm 0; flex:1 1 auto; min-height:0; display:flex; flex-direction:column; }
+  .year-fest-panel .ribbon{ align-self:flex-start; }
+  .year-fest-grid{
+    margin-top:5px; column-count:4; column-gap:6mm; flex:1 1 auto;
+  }
+  .year-fest-month{ break-inside:avoid; margin-bottom:4px; }
+  .year-fest-month .yfm-title{
+    font-family:'Playfair Display',serif; font-weight:700; font-size:9.5px;
+    color:var(--maroon-2); border-bottom:1px solid var(--gold-line); margin-bottom:2px; padding-bottom:1px;
+  }
+  .year-fest-row{ display:flex; gap:4px; font-size:7.6px; line-height:1.25; align-items:baseline; }
+  .year-fest-row .yf-date{ flex:0 0 20px; color:var(--ink-soft); font-weight:600; }
+  .year-fest-row .yf-name{ color:var(--ink); }
+
+  .footer-line{
+    text-align:center; flex:0 0 auto; padding:2mm 8mm 3mm; color:var(--maroon-2);
+    font-family:'Noto Sans Devanagari',serif; font-size:10px;
+    display:flex; align-items:center; justify-content:center; gap:10px;
+  }
+  .footer-line .om{ font-size:14px; color:var(--gold); }
+
+  .signature{
+    position:absolute; right:9mm; bottom:2mm; z-index:5; text-align:right;
+    font-family:'Great Vibes',cursive; color:var(--gold);
+    line-height:1.05; text-shadow:0 1px 0 rgba(255,255,255,.5);
+  }
+  .signature .made{ display:block; font-family:'Lora',serif; font-size:7.5px; letter-spacing:.08em; color:var(--ink-soft); text-transform:uppercase; }
+  .signature .name{ font-size:16px; }
+
+  /* ============ EDITOR PANELS (screen only) ============ */
+  .panels{ max-width:210mm; margin:0 auto 60px; padding:0 12px; display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+  .panel{ background:var(--paper); border:1px solid var(--gold-line); border-radius:10px; padding:18px 20px; box-shadow:0 8px 24px rgba(0,0,0,.15); }
+  .panel h3{ margin:0 0 12px; color:var(--maroon); font-size:20px; border-bottom:1px solid var(--gold-line); padding-bottom:6px; font-family:'Playfair Display',serif; }
+  .panel .field{ margin-bottom:10px; display:flex; flex-direction:column; gap:4px; }
+  .panel label{ font-size:12px; color:var(--ink-soft); }
+  .panel input[type=text], .panel input[type=date]{ padding:7px 9px; border:1px solid var(--gold-line); border-radius:6px; font-family:'Lora',serif; font-size:13px; }
+  .panel input[type=color]{ width:46px; height:32px; border:1px solid var(--gold-line); border-radius:6px; padding:2px; cursor:pointer; }
+  .panel .row{ display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap; }
+  .panel button{ background:var(--maroon); color:#fff; border:none; padding:9px 16px; border-radius:6px; cursor:pointer; font-family:'Lora',serif; font-size:13px; }
+  .panel button:hover{ background:var(--maroon-2); }
+  .fest-item{ display:flex; align-items:center; justify-content:space-between; gap:8px; padding:6px 8px; border-radius:6px; margin-bottom:6px; background:var(--cream); font-size:13px; }
+  .fest-item .dot{ width:10px; height:10px; border-radius:50%; display:inline-block; margin-right:6px; }
+  .fest-item .del{ background:none; border:none; color:var(--red); cursor:pointer; font-size:15px; }
+  .empty-note{ font-size:12px; color:var(--ink-soft); font-style:italic; }
+  .status-note{ text-align:center; font-size:12px; color:#fff; background:var(--maroon); padding:6px 10px; border-radius:6px; max-width:210mm; margin:0 auto 12px; display:none; }
+
+  /* ============ PRINT ============ */
+  @media print{
+    @page{ size:A4 portrait; margin:0; }
+    html,body{ background:#fff; }
+    .toolbar, .panels, .status-note{ display:none !important; }
+    .page-wrap{ padding:0; }
+    #printFrame{ box-shadow:none; border:none; margin:0; }
+    * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
+  }
+  @media (max-width:920px){
+    #printFrame{ width:100%; height:auto; overflow:visible; }
+    #sheet{ position:static; transform:none !important; width:100% !important; }
+    .top-grid{ grid-template-columns:1fr; }
+    .mini-row{ flex-direction:column; }
+    .panels{ grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="toolbar">
+    <div>
+      <label for="monthSelect">Select Month</label>
+      <select id="monthSelect"></select>
+    </div>
+    <div>
+      <label for="yearSelect">Select Year</label>
+      <select id="yearSelect"></select>
+    </div>
+    <div class="divider"></div>
+    <button id="bgBtn">🖼 Upload Background Photo</button>
+    <input type="file" id="bgInput" accept="image/*">
+    <button id="stretchBtn">↔ Stretch: Off</button>
+    <button id="resetBgBtn">Reset Background</button>
+    <div class="divider"></div>
+    <button class="primary" id="printBtn">🖨 Print A4</button>
+    <button class="primary" id="pdfBtn">⬇ Download PDF</button>
+  </div>
+
+  <div class="status-note" id="statusNote"></div>
+
+  <div class="page-wrap">
+    <div id="printFrame">
+      <div class="inner-border"></div>
+      <div id="sheet">
+
+        <div class="top-grid">
+          <div class="left-col">
+            <div class="temple-header" id="templeHeader">
+              <img class="deco-leaf l" alt="" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 40'><path d='M2 2 C20 2 40 12 55 30' stroke='%23234d33' stroke-width='3' fill='none'/><ellipse cx='18' cy='10' rx='8' ry='4' fill='%232f6b45' transform='rotate(30 18 10)'/><ellipse cx='34' cy='18' rx='8' ry='4' fill='%232f6b45' transform='rotate(45 34 18)'/><ellipse cx='48' cy='27' rx='7' ry='3.5' fill='%232f6b45' transform='rotate(55 48 27)'/></svg>">
+              <img class="deco-leaf r" alt="" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 40'><path d='M2 2 C20 2 40 12 55 30' stroke='%23234d33' stroke-width='3' fill='none'/><ellipse cx='18' cy='10' rx='8' ry='4' fill='%232f6b45' transform='rotate(30 18 10)'/><ellipse cx='34' cy='18' rx='8' ry='4' fill='%232f6b45' transform='rotate(45 34 18)'/><ellipse cx='48' cy='27' rx='7' ry='3.5' fill='%232f6b45' transform='rotate(55 48 27)'/></svg>">
+              <div class="top-line devanagari">॥ श्री गणेशाय नमः ॥</div>
+              <div class="year-badge">
+                <div class="yr" id="yearBadgeYr">2025</div>
+                <div class="vs devanagari" id="vsSmall">विक्रम संवत् 2081</div>
+              </div>
+            </div>
+
+            <div class="month-heading">
+              <div class="flourish">
+                <span style="color:var(--gold)">✥</span>
+                <h2 id="mainMonthName">JANUARY</h2>
+                <span style="color:var(--gold)">✥</span>
+              </div>
+              <div class="hindi-name" id="mainMonthHindi">जनवरी</div>
+              <hr class="rule">
+            </div>
+
+            <div id="mainCalendar"></div>
+          </div>
+
+          <div class="right-col">
+            <div class="badge">
+              <div class="tagline devanagari">॥ धर्मो रक्षति रक्षितः ॥</div>
+              <div class="title1">HINDU</div>
+              <div class="title1">CALENDAR</div>
+              <div class="title2" id="badgeYear">2025</div>
+            </div>
+
+            <div class="fest-panel">
+              <div class="ribbon" id="festRibbon">MAJOR HINDU FESTIVALS</div>
+              <div class="fest-rows" id="festRows"></div>
+              <div class="fest-more" id="festMore"></div>
+              <div class="blessing">
+                <div class="lotus">✾</div>
+                <p>सर्वे भवन्तु सुखिनः सर्वे सन्तु निरामयाः ।</p>
+                <p>सर्वे भद्राणि पश्यन्तु मा कश्चिद् दुःखभाग्भवेत् ॥</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mini-row" id="miniRow"></div>
+
+        <div class="year-fest-panel">
+          <div class="ribbon" id="yearFestRibbon">ALL FESTIVALS &amp; HOLIDAYS 2025</div>
+          <div class="year-fest-grid" id="yearFestGrid"></div>
+        </div>
+
+        <div class="footer-line">
+          <span>✥</span><span class="om devanagari">ॐ</span>
+          <span>सर्वे भवन्तु सुखिनः, सर्वे सन्तु निरामयाः ।</span>
+          <span class="om devanagari">ॐ</span><span>✥</span>
+        </div>
+
+        <div class="signature">
+          <span class="made">Designed by</span>
+          <span class="name">Abhinandan Singh Rajput</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panels">
+    <div class="panel">
+      <h3>🎉 Festival Editor</h3>
+      <div class="field">
+        <label for="festName">Festival Name</label>
+        <input type="text" id="festName" placeholder="e.g. Diwali, Holi, Navratri">
+      </div>
+      <div class="row">
+        <div class="field">
+          <label for="festDate">Date</label>
+          <input type="date" id="festDate">
+        </div>
+        <div class="field">
+          <label for="festColor">Colour</label>
+          <input type="color" id="festColor" value="#B3202E">
+        </div>
+        <button id="addFestBtn">Save Festival</button>
+      </div>
+      <div id="festList" style="margin-top:14px;"></div>
+    </div>
+
+    <div class="panel">
+      <h3>ℹ️ About this Calendar</h3>
+      <p style="font-size:13px; line-height:1.6; color:var(--ink-soft);">
+        Choose any month from the dropdown above — it becomes the large calendar on the left, and
+        the next two months automatically fill the strip at the bottom. Upload your own temple or
+        deity photo to replace the header image. Add festivals below and they appear both inside
+        the date cell and in the "Major Hindu Festivals" panel on the right.
+      </p>
+      <p style="font-size:13px; line-height:1.6; color:var(--ink-soft);">
+        The page auto-shrinks to fit one A4 sheet exactly, no matter how much content you add, so
+        <b>Print A4</b> and <b>Download PDF</b> will always produce exactly one page. The
+        "Major Hindu Festivals" panel on the right always shows every festival — big or small —
+        falling in the selected month and the two months after it.
+      </p>
+    </div>
+  </div>
+
+<script>
+(function(){
+  'use strict';
+
+  /* ---------- constants ---------- */
+  const YEARS = [2025, 2026, 2027, 2028, 2029, 2030];
+  const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const MONTH_NAMES_HI = ['जनवरी','फ़रवरी','मार्च','अप्रैल','मई','जून','जुलाई','अगस्त','सितम्बर','अक्टूबर','नवम्बर','दिसम्बर'];
+  const WEEKDAYS_EN = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+  const WEEKDAYS_HI = ['रवि','सोम','मंगल','बुध','गुरु','शुक्र','शनि'];
+  const HINDI_LUNAR_MONTHS = ['पौष','माघ','फाल्गुन','चैत्र','वैशाख','ज्येष्ठ','आषाढ़','श्रावण','भाद्रपद','आश्विन','कार्तिक','मार्गशीर्ष'];
+  const TITHI = ['प्रतिपदा','द्वितीया','तृतीया','चतुर्थी','पंचमी','षष्ठी','सप्तमी','अष्टमी','नवमी','दशमी','एकादशी','द्वादशी','त्रयोदशी','चतुर्दशी'];
+  const LUNAR_EPOCH = new Date(2024, 11, 1).getTime();
+
+  const LS_KEYS = { bg:'hinduCal_bgImage_v2', fests:'hinduCal_festivals_v3', month:'hinduCal_selectedMonth_v2', year:'hinduCal_selectedYear_v2', stretch:'hinduCal_bgStretch_v1' };
+
+  const FEST_ICONS = [
+    { k:['sankranti','sun'], icon:'☀️' },
+    { k:['amavasya'], icon:'🌑' },
+    { k:['shivratri','shiv'], icon:'🔱' },
+    { k:['holi'], icon:'🎨' },
+    { k:['navami','ram'], icon:'🏹' },
+    { k:['hanuman'], icon:'🐒' },
+    { k:['mahavir'], icon:'🙏' },
+    { k:['friday','good friday','christ'], icon:'✝️' },
+    { k:['diwali','deepavali'], icon:'🪔' },
+    { k:['gandhi'], icon:'🕊️' },
+    { k:['gudi','padwa','new year'], icon:'🚩' },
+    { k:['panchami','saraswati','vasant'], icon:'🪈' }
+  ];
+
+  /* ---------- state ---------- */
+  let festivals = loadFestivals();
+  let selectedMonth = loadSelectedMonth();
+  let YEAR = loadSelectedYear();
+
+  /* ---------- localStorage ---------- */
+  function loadFestivals(){
+    try{
+      const raw = localStorage.getItem(LS_KEYS.fests);
+      return raw ? JSON.parse(raw) : defaultFestivals();
+    }catch(e){ return defaultFestivals(); }
+  }
+  function saveFestivals(){ localStorage.setItem(LS_KEYS.fests, JSON.stringify(festivals)); }
+  function defaultFestivals(){
+    return [
+      // ---- 2025 ----
+      { id:'d1', date:'2025-01-14', name:'Makar Sankranti', color:'#B8860B' },
+      { id:'d2', date:'2025-01-29', name:'Mauni Amavasya', color:'#16233D' },
+      { id:'d3', date:'2025-02-02', name:'Vasant Panchami', color:'#B8860B' },
+      { id:'d4', date:'2025-02-12', name:'Maha Shivratri', color:'#7A1220' },
+      { id:'d5', date:'2025-03-14', name:'Holi', color:'#B3202E' },
+      { id:'d6', date:'2025-03-29', name:'Gudi Padwa', color:'#234D33' },
+      { id:'d7', date:'2025-03-30', name:'Ram Navami', color:'#7A1220' },
+      { id:'d8', date:'2025-04-06', name:'Hanuman Jayanti', color:'#B8860B' },
+      { id:'d9', date:'2025-04-10', name:'Mahavir Jayanti', color:'#7A1220' },
+      { id:'d10', date:'2025-04-18', name:'Good Friday', color:'#16233D' },
+      { id:'d11', date:'2025-08-16', name:'Janmashtami', color:'#7A1220' },
+      { id:'d12', date:'2025-10-02', name:'Gandhi Jayanti', color:'#234D33' },
+      { id:'d13', date:'2025-10-20', name:'Diwali', color:'#B8860B' },
+      // ---- 2026 ----
+      { id:'e1', date:'2026-01-14', name:'Makar Sankranti', color:'#B8860B' },
+      { id:'e2', date:'2026-01-23', name:'Vasant Panchami', color:'#B8860B' },
+      { id:'e3', date:'2026-02-15', name:'Maha Shivratri', color:'#7A1220' },
+      { id:'e4', date:'2026-03-04', name:'Holi', color:'#B3202E' },
+      { id:'e5', date:'2026-03-19', name:'Gudi Padwa', color:'#234D33' },
+      { id:'e6', date:'2026-03-26', name:'Ram Navami', color:'#7A1220' },
+      { id:'e7', date:'2026-03-31', name:'Mahavir Jayanti', color:'#7A1220' },
+      { id:'e8', date:'2026-04-03', name:'Good Friday', color:'#16233D' },
+      { id:'e9', date:'2026-09-04', name:'Janmashtami', color:'#7A1220' },
+      { id:'e10', date:'2026-10-02', name:'Gandhi Jayanti', color:'#234D33' },
+      { id:'e11', date:'2026-11-08', name:'Diwali', color:'#B8860B' },
+      // ---- 2027 ----
+      { id:'f1', date:'2027-01-15', name:'Makar Sankranti', color:'#B8860B' },
+      { id:'f2', date:'2027-02-11', name:'Vasant Panchami', color:'#B8860B' },
+      { id:'f3', date:'2027-03-06', name:'Maha Shivratri', color:'#7A1220' },
+      { id:'f4', date:'2027-03-22', name:'Holi', color:'#B3202E' },
+      { id:'f5', date:'2027-03-26', name:'Good Friday', color:'#16233D' },
+      { id:'f6', date:'2027-04-07', name:'Gudi Padwa', color:'#234D33' },
+      { id:'f7', date:'2027-04-15', name:'Ram Navami', color:'#7A1220' },
+      { id:'f8', date:'2027-04-19', name:'Mahavir Jayanti', color:'#7A1220' },
+      { id:'f9', date:'2027-08-25', name:'Janmashtami', color:'#7A1220' },
+      { id:'f10', date:'2027-10-02', name:'Gandhi Jayanti', color:'#234D33' },
+      { id:'f11', date:'2027-10-29', name:'Diwali', color:'#B8860B' },
+      // ---- 2028 ----
+      { id:'g1', date:'2028-01-15', name:'Makar Sankranti', color:'#B8860B' },
+      { id:'g2', date:'2028-01-31', name:'Vasant Panchami', color:'#B8860B' },
+      { id:'g3', date:'2028-02-23', name:'Maha Shivratri', color:'#7A1220' },
+      { id:'g4', date:'2028-03-11', name:'Holi', color:'#B3202E' },
+      { id:'g5', date:'2028-03-27', name:'Gudi Padwa', color:'#234D33' },
+      { id:'g6', date:'2028-04-03', name:'Ram Navami', color:'#7A1220' },
+      { id:'g7', date:'2028-04-07', name:'Mahavir Jayanti', color:'#7A1220' },
+      { id:'g8', date:'2028-04-14', name:'Good Friday', color:'#16233D' },
+      { id:'g9', date:'2028-08-13', name:'Janmashtami', color:'#7A1220' },
+      { id:'g10', date:'2028-10-02', name:'Gandhi Jayanti', color:'#234D33' },
+      { id:'g11', date:'2028-10-17', name:'Diwali', color:'#B8860B' },
+      // ---- 2029 ----
+      { id:'h1', date:'2029-01-14', name:'Makar Sankranti', color:'#B8860B' },
+      { id:'h2', date:'2029-01-19', name:'Vasant Panchami', color:'#B8860B' },
+      { id:'h3', date:'2029-02-11', name:'Maha Shivratri', color:'#7A1220' },
+      { id:'h4', date:'2029-02-28', name:'Holi', color:'#B3202E' },
+      { id:'h5', date:'2029-03-30', name:'Good Friday', color:'#16233D' },
+      { id:'h6', date:'2029-04-14', name:'Gudi Padwa', color:'#234D33' },
+      { id:'h7', date:'2029-04-23', name:'Ram Navami', color:'#7A1220' },
+      { id:'h8', date:'2029-04-26', name:'Mahavir Jayanti', color:'#7A1220' },
+      { id:'h9', date:'2029-08-31', name:'Janmashtami', color:'#7A1220' },
+      { id:'h10', date:'2029-10-02', name:'Gandhi Jayanti', color:'#234D33' },
+      { id:'h11', date:'2029-11-05', name:'Diwali', color:'#B8860B' },
+      // ---- 2030 ----
+      { id:'i1', date:'2030-01-14', name:'Makar Sankranti', color:'#B8860B' },
+      { id:'i2', date:'2030-02-07', name:'Vasant Panchami', color:'#B8860B' },
+      { id:'i3', date:'2030-03-02', name:'Maha Shivratri', color:'#7A1220' },
+      { id:'i4', date:'2030-03-20', name:'Holi', color:'#B3202E' },
+      { id:'i5', date:'2030-04-03', name:'Gudi Padwa', color:'#234D33' },
+      { id:'i6', date:'2030-04-12', name:'Ram Navami', color:'#7A1220' },
+      { id:'i7', date:'2030-04-16', name:'Mahavir Jayanti', color:'#7A1220' },
+      { id:'i8', date:'2030-04-19', name:'Good Friday', color:'#16233D' },
+      { id:'i9', date:'2030-08-20', name:'Janmashtami', color:'#7A1220' },
+      { id:'i10', date:'2030-10-02', name:'Gandhi Jayanti', color:'#234D33' },
+      { id:'i11', date:'2030-10-26', name:'Diwali', color:'#B8860B' }
+    ];
+  }
+  function loadSelectedMonth(){
+    const raw = localStorage.getItem(LS_KEYS.month);
+    const n = raw !== null ? parseInt(raw,10) : 0;
+    return (isNaN(n) || n<0 || n>11) ? 0 : n;
+  }
+  function saveSelectedMonth(m){ localStorage.setItem(LS_KEYS.month, String(m)); }
+
+  function loadSelectedYear(){
+    const raw = localStorage.getItem(LS_KEYS.year);
+    const n = raw !== null ? parseInt(raw,10) : YEARS[0];
+    return YEARS.includes(n) ? n : YEARS[0];
+  }
+  function saveSelectedYear(y){ localStorage.setItem(LS_KEYS.year, String(y)); }
+
+  function loadBackground(){
+    const data = localStorage.getItem(LS_KEYS.bg);
+    if(data){
+      document.getElementById('templeHeader').style.backgroundImage =
+        "linear-gradient(to bottom, rgba(248,239,220,0) 45%, rgba(248,239,220,.55) 78%, rgba(248,239,220,1) 100%), url('"+data+"')";
+    }
+  }
+  function saveBackground(dataUrl){ localStorage.setItem(LS_KEYS.bg, dataUrl); }
+
+  function loadStretch(){ return localStorage.getItem(LS_KEYS.stretch) === '1'; }
+  function saveStretch(on){ localStorage.setItem(LS_KEYS.stretch, on ? '1' : '0'); }
+  function applyStretch(on){
+    document.getElementById('templeHeader').classList.toggle('stretch', on);
+    document.getElementById('stretchBtn').textContent = '↔ Stretch: ' + (on ? 'On' : 'Off');
+  }
+
+  /* ---------- date helpers ---------- */
+  function addMonths(year, month, n){
+    let m = month+n; let y = year + Math.floor(m/12); m = ((m%12)+12)%12;
+    return { year:y, month:m };
+  }
+  function pad(n){ return n<10 ? '0'+n : ''+n; }
+  function isoDate(y,m,d){ return y+'-'+pad(m+1)+'-'+pad(d); }
+  function vikramSamvat(year, month){ return month<3 ? year+56 : year+57; }
+
+  function panchangText(dateObj){
+    const daysSince = Math.floor((dateObj.getTime() - LUNAR_EPOCH) / 86400000);
+    const lunarDay = ((daysSince % 30) + 30) % 30;
+    const paksha = lunarDay < 15 ? 'कृष्ण' : 'शुक्ल';
+    const tIdx = lunarDay % 15;
+    const tithiName = tIdx === 14 ? (paksha === 'कृष्ण' ? 'अमावस्या' : 'पूर्णिमा') : TITHI[tIdx];
+    const lunarMonthIdx = ((Math.floor(daysSince/30) % 12) + 12) % 12;
+    return HINDI_LUNAR_MONTHS[lunarMonthIdx] + ' ' + paksha + ' ' + tithiName;
+  }
+
+  function festivalsFor(iso){ return festivals.filter(f=>f.date===iso); }
+
+  function escapeHtml(str){
+    return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function iconFor(name){
+    const low = name.toLowerCase();
+    for(const entry of FEST_ICONS){
+      if(entry.k.some(k => low.includes(k))) return entry.icon;
+    }
+    return '🔔';
+  }
+
+  /* ---------- calendar table builder ---------- */
+  function buildMonthTable(year, month, opts){
+    opts = opts || {};
+    const showPanchang = !!opts.showPanchang;
+    const daysInMonth = new Date(year, month+1, 0).getDate();
+    const firstWeekday = new Date(year, month, 1).getDay();
+    const prevMonth = addMonths(year, month, -1);
+    const daysInPrev = new Date(prevMonth.year, prevMonth.month+1, 0).getDate();
+    const nextMonth = addMonths(year, month, 1);
+
+    let html = '<table class="cal"><thead><tr>';
+    WEEKDAYS_EN.forEach((w,i)=>{
+      html += '<th class="'+(i===0?'sun':'')+'"><span class="en">'+w+'</span><span class="hi devanagari">'+WEEKDAYS_HI[i]+'</span></th>';
+    });
+    html += '</tr></thead><tbody>';
+
+    const totalCells = Math.ceil((firstWeekday + daysInMonth) / 7) * 7;
+    let dayCounter = 1;
+    let nextCounter = 1;
+
+    for(let cell=0; cell<totalCells; cell++){
+      if(cell % 7 === 0) html += '<tr>';
+
+      let cellDay, cellMonth, cellYear, faded = false;
+      if(cell < firstWeekday){
+        cellDay = daysInPrev - firstWeekday + 1 + cell;
+        cellMonth = prevMonth.month; cellYear = prevMonth.year; faded = true;
+      } else if(dayCounter <= daysInMonth){
+        cellDay = dayCounter; cellMonth = month; cellYear = year; dayCounter++;
+      } else {
+        cellDay = nextCounter++; cellMonth = nextMonth.month; cellYear = nextMonth.year; faded = true;
+      }
+
+      const weekday = cell % 7;
+      const iso = isoDate(cellYear, cellMonth, cellDay);
+      const fests = faded ? [] : festivalsFor(iso);
+      const isSun = weekday === 0;
+      const dObj = new Date(cellYear, cellMonth, cellDay);
+
+      html += '<td class="'+(isSun?'sun ':'')+(faded?'faded':'')+'">';
+      html += '<div class="cell-inner" style="'+(faded?'opacity:.38;':'')+'">';
+      html += '<span class="date-num'+(fests.length?' hl':'')+'">'+cellDay+'</span>';
+      if(showPanchang){
+        html += '<span class="panchang devanagari">'+panchangText(dObj)+'</span>';
+      }
+      if(fests.length){
+        const names = fests.map(f=>escapeHtml(f.name)).join(', ');
+        const color = fests[0].color || '#B3202E';
+        html += '<span class="fest-name" style="color:'+color+'">'+names+'</span>';
+      }
+      html += '</div></td>';
+
+      if(cell % 7 === 6) html += '</tr>';
+    }
+    html += '</tbody></table>';
+    return html;
+  }
+
+  /* ---------- render everything ---------- */
+  function renderAll(){
+    const month = selectedMonth, year = YEAR;
+
+    document.getElementById('yearBadgeYr').textContent = year;
+    document.getElementById('badgeYear').textContent = year;
+    document.title = 'Hindu Calendar ' + year + ' — Premium Print Edition';
+
+    document.getElementById('vsSmall').textContent = 'विक्रम संवत् ' + vikramSamvat(year, month);
+    document.getElementById('mainMonthName').textContent = MONTH_NAMES[month].toUpperCase();
+    document.getElementById('mainMonthHindi').textContent = MONTH_NAMES_HI[month];
+
+    document.getElementById('mainCalendar').innerHTML = buildMonthTable(year, month, { showPanchang:true });
+
+    const n1 = addMonths(year, month, 1);
+    const n2 = addMonths(year, month, 2);
+    const miniRow = document.getElementById('miniRow');
+    miniRow.innerHTML = [ {m:n1, cls:'a'}, {m:n2, cls:'b'} ].map(entry=>{
+      const vs = vikramSamvat(entry.m.year, entry.m.month);
+      return '<div class="mini-cal '+entry.cls+'">'+
+        '<div class="mini-title"><span>'+MONTH_NAMES[entry.m.month].toUpperCase()+' '+entry.m.year+'</span>'+
+        '<span class="vs-sub devanagari">वि.सं. '+vs+'</span></div>' +
+        buildMonthTable(entry.m.year, entry.m.month, { showPanchang:true }) +
+      '</div>';
+    }).join('');
+
+    renderFestPanel();
+    renderYearFestivals();
+    scheduleFit();
+  }
+
+  function renderYearFestivals(){
+    const year = YEAR;
+    document.getElementById('yearFestRibbon').textContent = 'ALL FESTIVALS & HOLIDAYS ' + year;
+
+    const inYear = festivals.filter(f => f.date.slice(0,4) === String(year))
+      .sort((a,b)=>a.date.localeCompare(b.date));
+
+    const grid = document.getElementById('yearFestGrid');
+    if(!inYear.length){
+      grid.innerHTML = '<div class="empty-note">No festivals saved for '+year+' yet — use the Festival Editor below.</div>';
+      return;
+    }
+
+    // group by month
+    const byMonth = {};
+    inYear.forEach(f=>{
+      const m = parseInt(f.date.slice(5,7),10) - 1;
+      (byMonth[m] = byMonth[m] || []).push(f);
+    });
+
+    let html = '';
+    for(let m=0; m<12; m++){
+      if(!byMonth[m]) continue;
+      html += '<div class="year-fest-month">';
+      html += '<div class="yfm-title">'+MONTH_NAMES[m]+'</div>';
+      byMonth[m].forEach(f=>{
+        const d = new Date(f.date+'T00:00:00');
+        const dayLabel = isNaN(d) ? f.date : pad(d.getDate());
+        html += '<div class="year-fest-row">'+
+          '<span class="yf-date">'+dayLabel+'</span>'+
+          '<span class="yf-name" style="color:'+f.color+'">'+escapeHtml(f.name)+'</span>'+
+        '</div>';
+      });
+      html += '</div>';
+    }
+    grid.innerHTML = html;
+  }
+
+  function renderFestPanel(){
+    const year = YEAR, month = selectedMonth;
+    // range = selected month through the end of the 2 months after it
+    const startIso = isoDate(year, month, 1);
+    const n2 = addMonths(year, month, 2);
+    const endDay = new Date(n2.year, n2.month+1, 0).getDate();
+    const endIso = isoDate(n2.year, n2.month, endDay);
+
+    const inRange = festivals.filter(f => f.date >= startIso && f.date <= endIso);
+    const sorted = inRange.sort((a,b)=>a.date.localeCompare(b.date));
+
+    document.getElementById('festRibbon').textContent =
+      'FESTIVALS: ' + MONTH_NAMES[month].toUpperCase().slice(0,3) + ' – ' + MONTH_NAMES[n2.month].toUpperCase().slice(0,3) + ' ' + n2.year;
+
+    const rows = document.getElementById('festRows');
+    if(!sorted.length){
+      rows.innerHTML = '<div class="empty-note">No festivals in this 3-month window — use the Festival Editor below.</div>';
+    } else {
+      rows.innerHTML = sorted.map(f=>{
+        const d = new Date(f.date+'T00:00:00');
+        const label = isNaN(d) ? f.date : (pad(d.getDate())+' '+MONTH_NAMES[d.getMonth()].slice(0,3));
+        return '<div class="fest-row">'+
+          '<span class="icon">'+iconFor(f.name)+'</span>'+
+          '<span class="fdate">'+label+'</span>'+
+          '<span class="fname" style="color:'+f.color+'; font-weight:600;">'+escapeHtml(f.name)+'</span>'+
+        '</div>';
+      }).join('');
+    }
+    document.getElementById('festMore').textContent = '';
+  }
+
+  /* ---------- festival editor list (screen panel) ---------- */
+  function renderFestivalList(){
+    const list = document.getElementById('festList');
+    const sorted = [...festivals].sort((a,b)=>a.date.localeCompare(b.date));
+    if(!sorted.length){
+      list.innerHTML = '<p class="empty-note">No festivals added yet. Add one above.</p>';
+      return;
+    }
+    list.innerHTML = sorted.map(f=>{
+      const d = new Date(f.date+'T00:00:00');
+      const label = isNaN(d) ? f.date : (d.getDate()+' '+MONTH_NAMES[d.getMonth()]+' '+d.getFullYear());
+      return '<div class="fest-item">'+
+        '<span><span class="dot" style="background:'+f.color+'"></span>'+escapeHtml(f.name)+' — '+label+'</span>'+
+        '<button class="del" data-id="'+f.id+'" title="Remove">✕</button>'+
+      '</div>';
+    }).join('');
+    list.querySelectorAll('.del').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        festivals = festivals.filter(f=>f.id!==btn.dataset.id);
+        saveFestivals();
+        renderFestivalList();
+        renderAll();
+      });
+    });
+  }
+
+  /* ---------- month & year selectors ---------- */
+  function buildMonthSelector(){
+    const sel = document.getElementById('monthSelect');
+    sel.innerHTML = MONTH_NAMES.map((m,i)=>'<option value="'+i+'">'+m+'</option>').join('');
+    sel.value = String(selectedMonth);
+    sel.addEventListener('change', ()=>{
+      selectedMonth = parseInt(sel.value,10);
+      saveSelectedMonth(selectedMonth);
+      renderAll();
+    });
+
+    const ySel = document.getElementById('yearSelect');
+    ySel.innerHTML = YEARS.map(y=>'<option value="'+y+'">'+y+'</option>').join('');
+    ySel.value = String(YEAR);
+    ySel.addEventListener('change', ()=>{
+      YEAR = parseInt(ySel.value,10);
+      saveSelectedYear(YEAR);
+      renderAll();
+    });
+  }
+
+  /* ---------- background upload ---------- */
+  function initBackgroundControls(){
+    const bgBtn = document.getElementById('bgBtn');
+    const bgInput = document.getElementById('bgInput');
+    const resetBtn = document.getElementById('resetBgBtn');
+    const stretchBtn = document.getElementById('stretchBtn');
+    bgBtn.addEventListener('click', ()=> bgInput.click());
+    bgInput.addEventListener('change', (e)=>{
+      const file = e.target.files && e.target.files[0];
+      if(!file) return;
+      const reader = new FileReader();
+      reader.onload = ev => { saveBackground(ev.target.result); loadBackground(); scheduleFit(); };
+      reader.readAsDataURL(file);
+    });
+    stretchBtn.addEventListener('click', ()=>{
+      const on = !document.getElementById('templeHeader').classList.contains('stretch');
+      applyStretch(on);
+      saveStretch(on);
+    });
+    resetBtn.addEventListener('click', ()=>{
+      localStorage.removeItem(LS_KEYS.bg);
+      document.getElementById('templeHeader').style.backgroundImage =
+        "linear-gradient(to bottom, rgba(248,239,220,0) 45%, rgba(248,239,220,.55) 78%, rgba(248,239,220,1) 100%), url('https://images.unsplash.com/photo-1548013146-72479768bada?q=80&w=1200&auto=format&fit=crop')";
+      scheduleFit();
+    });
+  }
+
+  /* ---------- festival form ---------- */
+  function initFestivalForm(){
+    document.getElementById('addFestBtn').addEventListener('click', ()=>{
+      const nameEl = document.getElementById('festName');
+      const dateEl = document.getElementById('festDate');
+      const colorEl = document.getElementById('festColor');
+      const name = nameEl.value.trim();
+      const date = dateEl.value;
+      const color = colorEl.value || '#B3202E';
+      if(!name || !date){ alert('Please enter both a festival name and a date.'); return; }
+      festivals.push({ id:'f'+Date.now(), date, name, color });
+      saveFestivals();
+      nameEl.value = ''; dateEl.value = '';
+      renderFestivalList();
+      renderAll();
+    });
+  }
+
+  /* =========================================================
+     AUTO-FIT-TO-ONE-PAGE ENGINE
+     #printFrame is a fixed 210mm x 297mm box. #sheet holds the
+     real content at natural size; we measure its height and, if
+     it is taller than the frame, shrink it down (transform:scale)
+     so it always renders as exactly one A4 page — for both the
+     on-screen preview, window.print(), and the PDF export.
+     ========================================================= */
+  let fitPending = null;
+  function scheduleFit(){
+    if(fitPending) cancelAnimationFrame(fitPending);
+    fitPending = requestAnimationFrame(fitToOnePage);
+  }
+  function fitToOnePage(){
+    const frame = document.getElementById('printFrame');
+    const sheet = document.getElementById('sheet');
+    if(!frame || !sheet) return;
+
+    // reset to natural size first so we can measure real content height
+    sheet.style.transform = 'none';
+    sheet.style.width = frame.clientWidth + 'px';
+    // force reflow
+    // eslint-disable-next-line no-unused-expressions
+    sheet.offsetHeight;
+
+    const frameH = frame.clientHeight;
+    const frameW = frame.clientWidth;
+    const naturalH = sheet.scrollHeight;
+
+    let scale = 1;
+    if(naturalH > frameH){
+      scale = frameH / naturalH;
+    }
+    sheet.style.width = (frameW / scale) + 'px';
+    sheet.style.transform = 'scale(' + scale + ')';
+  }
+
+  /* ---------- export: PRINT (browser dialog) ---------- */
+  function initPrint(){
+    document.getElementById('printBtn').addEventListener('click', ()=>{
+      fitToOnePage();
+      setTimeout(()=> window.print(), 50);
+    });
+    window.addEventListener('beforeprint', fitToOnePage);
+    window.addEventListener('afterprint', scheduleFit);
+    window.addEventListener('resize', scheduleFit);
+    if(document.fonts && document.fonts.ready){
+      document.fonts.ready.then(scheduleFit);
+    }
+  }
+
+  function showStatus(msg, isError){
+    const note = document.getElementById('statusNote');
+    note.textContent = msg;
+    note.style.display = 'block';
+    note.style.background = isError ? '#B3202E' : 'var(--maroon)';
+    if(!isError){
+      setTimeout(()=>{ note.style.display = 'none'; }, 3500);
+    }
+  }
+
+  /* ---------- export: PDF (direct file download, always 1 page) ---------- */
+  function initPdfExport(){
+    const btn = document.getElementById('pdfBtn');
+    btn.addEventListener('click', async ()=>{
+      if(typeof html2canvas === 'undefined' || !window.jspdf){
+        showStatus('PDF library failed to load — check your internet connection and try again.', true);
+        return;
+      }
+      btn.disabled = true; btn.textContent = '⏳ Preparing PDF...';
+      try{
+        fitToOnePage();
+        await new Promise(r=>setTimeout(r, 150)); // let layout settle
+        const frame = document.getElementById('printFrame');
+        const canvas = await html2canvas(frame, { scale:3, useCORS:true, backgroundColor:'#FCF6E8' });
+        const imgData = canvas.toDataURL('image/jpeg', 0.95);
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
+        pdf.save('Hindu-Calendar-' + MONTH_NAMES[selectedMonth] + '-' + YEAR + '.pdf');
+        showStatus('PDF downloaded — exactly one A4 page.');
+      }catch(err){
+        console.error(err);
+        showStatus('Could not generate the PDF (this can happen if the background photo is from another website). Try "Print A4" → "Save as PDF" instead.', true);
+      }finally{
+        btn.disabled = false; btn.textContent = '⬇ Download PDF';
+      }
+    });
+  }
+
+  function init(){
+    buildMonthSelector();
+    initBackgroundControls();
+    initFestivalForm();
+    initPrint();
+    initPdfExport();
+    loadBackground();
+    applyStretch(loadStretch());
+    renderFestivalList();
+    renderAll();
+    scheduleFit();
+  }
+
+  document.addEventListener('DOMContentLoaded', init);
+})();
+</script>
+</body>
+</html>
