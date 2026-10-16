@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Birthday Invitation Card Generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Pinyon+Script&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root { --blue: #1f7a9a; --navy: #0e2a3d; --panel: #ffffff; --bg: #eef3f7; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: #1b2a36; min-height: 100vh; }
+  header.app-head { padding: 22px 24px 8px; text-align: center; }
+  header.app-head h1 { font-size: 24px; font-weight: 600; color: var(--navy); }
+  header.app-head p { font-size: 14px; color: #5b6b78; margin-top: 4px; }
+
+  .layout {
+    display: grid; grid-template-columns: 360px 1fr; gap: 24px;
+    padding: 16px 24px 40px; max-width: 1280px; margin: 0 auto; align-items: start;
+  }
+  @media (max-width: 900px) { .layout { grid-template-columns: 1fr; padding: 12px 14px 32px; } }
+
+  /* ---------- Form ---------- */
+  .form-panel {
+    background: var(--panel); border-radius: 14px; padding: 20px;
+    box-shadow: 0 6px 24px rgba(20, 50, 80, .08); position: sticky; top: 16px;
+  }
+  @media (max-width: 900px) { .form-panel { position: static; } }
+  .form-panel h2 { font-size: 16px; margin-bottom: 14px; color: var(--navy); }
+  .field { margin-bottom: 12px; }
+  .field label { display: block; font-size: 12px; font-weight: 600; color: #4a5b68; margin-bottom: 5px; letter-spacing: .03em; }
+  .field input[type="text"], .field input[type="number"], .field select, .field textarea {
+    width: 100%; padding: 10px 12px; font: inherit; font-size: 14px;
+    border: 1px solid #cfdbe4; border-radius: 8px; background: #fafcfd;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .field textarea { resize: vertical; min-height: 64px; }
+  .field input:focus, .field select:focus, .field textarea:focus {
+    outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(31,122,154,.15);
+  }
+  .field input[readonly] { background: #e9f3f9; color: #0e2a3d; font-weight: 600; cursor: default; }
+  .field input[type="file"] { width: 100%; font-size: 13px; padding: 8px; border: 1px dashed #9db6c6; border-radius: 8px; background: #f4f9fc; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .row3 { display: grid; grid-template-columns: 1.3fr .8fr 1fr; gap: 10px; }
+  .hint { font-size: 11.5px; color: #6b7b88; margin-top: 4px; }
+  .btn {
+    width: 100%; margin-top: 8px; padding: 14px 16px; font: inherit; font-size: 16px; font-weight: 600;
+    color: #fff; background: linear-gradient(135deg, #2a95b9, #1a6a8a); border: none; border-radius: 10px; cursor: pointer;
+    box-shadow: 0 6px 16px rgba(26,106,138,.35); transition: transform .1s, box-shadow .15s, opacity .15s;
+  }
+  .btn:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(26,106,138,.4); }
+  .btn:active { transform: translateY(0); }
+  .btn:disabled { opacity: .65; cursor: wait; }
+
+  /* ---------- Preview ---------- */
+  .preview-panel { display: flex; justify-content: center; }
+  .preview-fit { position: relative; width: 794px; height: 1123px; }
+  .preview-scale { transform-origin: top left; width: 794px; height: 1123px; position: absolute; top: 0; left: 0; }
+
+  /* ---------- The Card (A4 @ 96dpi = 794 x 1123) ---------- */
+  .card {
+    position: relative; width: 794px; height: 1123px; overflow: hidden;
+    background: linear-gradient(180deg, #ffffff 0%, #eaf6fd 28%, #d4ecfa 62%, #c3e3f6 100%);
+    font-family: 'Cormorant Garamond', Georgia, serif; color: var(--navy);
+    box-shadow: 0 10px 40px rgba(20,50,80,.2);
+  }
+  .card .deco { position: absolute; left: 0; top: 0; width: 794px; height: 1123px; pointer-events: none; }
+
+  .photo-wrap {
+    position: absolute; left: 237px; top: 222px; width: 320px; height: 320px;
+    border-radius: 50%; background: #3a9cd0; overflow: hidden;
+  }
+  .photo-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+  /* curved "YOU ARE INVITED TO" built from letters */
+  .arc { position: absolute; left: 0; top: 0; width: 794px; height: 1123px; pointer-events: none; }
+  .arc span {
+    position: absolute; left: 397px; font-size: 26px; font-weight: 500; line-height: 1;
+    color: #0e2a3d; white-space: pre; font-family: 'Cormorant Garamond', Georgia, serif;
+  }
+
+  .content { position: absolute; left: 0; right: 0; top: 548px; text-align: center; padding: 0 60px; }
+  .c-name { font-family: 'Pinyon Script', cursive; font-size: 84px; line-height: 1.05; color: #0b2f45; word-break: break-word; }
+  .c-event { font-size: 40px; font-weight: 500; letter-spacing: .04em; text-transform: uppercase; margin-top: 8px; line-height: 1.15; }
+  .c-month { font-size: 24px; letter-spacing: .22em; text-transform: uppercase; margin-top: 22px; font-weight: 500; }
+  .c-dateRow { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 22px; margin: 2px auto 0; width: 640px; }
+  .c-side {
+    font-size: 24px; letter-spacing: .2em; text-transform: uppercase; padding: 12px 0; font-weight: 500;
+    border-top: 2px solid var(--navy); border-bottom: 2px solid var(--navy); white-space: nowrap;
+  }
+  .c-time { letter-spacing: .12em; text-transform: none; }
+  .c-date { font-size: 92px; font-weight: 500; line-height: 1; color: #050f18; min-width: 90px; }
+  .c-addr { font-size: 22px; letter-spacing: .16em; margin: 20px auto 0; max-width: 520px; line-height: 1.5; white-space: pre-line; }
+
+  /* ---------- Toast ---------- */
+  #toast {
+    position: fixed; left: 50%; bottom: 28px; transform: translate(-50%, 30px); opacity: 0;
+    background: #148a4f; color: #fff; padding: 14px 24px; border-radius: 999px; font-weight: 600; font-size: 15px;
+    box-shadow: 0 10px 28px rgba(0,0,0,.25); transition: all .3s ease; pointer-events: none; z-index: 99;
+  }
+  #toast.show { opacity: 1; transform: translate(-50%, 0); }
+</style>
+</head>
+<body>
+
+<header class="app-head">
+  <h1>Birthday Invitation Card Generator</h1>
+  <p>Fill in the details, watch the card update live, then download it as a PDF.</p>
+</header>
+
+<div class="layout">
+
+  <!-- ===== Form ===== -->
+  <form class="form-panel" id="form" onsubmit="return false">
+    <h2>Invitation Details</h2>
+
+    <div class="field">
+      <label for="photo">PHOTO</label>
+      <input type="file" id="photo" accept="image/*">
+    </div>
+    <div class="field">
+      <label for="name">NAME</label>
+      <input type="text" id="name" value="Juliana Silva">
+    </div>
+    <div class="field">
+      <label for="event">EVENT NAME</label>
+      <input type="text" id="event" value="18 th Birthday Party">
+    </div>
+
+    <div class="row3">
+      <div class="field">
+        <label for="month">MONTH</label>
+        <select id="month"></select>
+      </div>
+      <div class="field">
+        <label for="date">DATE</label>
+        <select id="date"></select>
+      </div>
+      <div class="field">
+        <label for="year">YEAR</label>
+        <input type="number" id="year" min="1900" max="2100" value="2026">
+      </div>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label for="day">DAY (auto)</label>
+        <input type="text" id="day" readonly>
+      </div>
+      <div class="field">
+        <label for="time">TIME</label>
+        <input type="text" id="time" value="10:00am">
+      </div>
+    </div>
+    <p class="hint" style="margin:-4px 0 12px">Month, date aur year choose karte hi din apne aap set ho jaata hai.</p>
+
+    <div class="field">
+      <label for="address">ADDRESS</label>
+      <textarea id="address">123 Anywhere St., Any City, ST 12345</textarea>
+    </div>
+
+    <button type="button" class="btn" id="downloadBtn">⬇ Download PDF</button>
+  </form>
+
+  <!-- ===== Live Preview ===== -->
+  <div class="preview-panel" id="previewPanel">
+    <div class="preview-fit" id="previewFit">
+      <div class="preview-scale" id="previewScale">
+
+        <div class="card" id="card">
+          <!-- Decorations (bunting, balloons, gifts) as SVG -->
+          <svg class="deco" width="794" height="1123" viewBox="0 0 794 1123" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <radialGradient id="bal1" cx="35%" cy="30%" r="75%">
+                <stop offset="0%" stop-color="#8fd0ee"/><stop offset="60%" stop-color="#3f9fd0"/><stop offset="100%" stop-color="#2579a8"/>
+              </radialGradient>
+              <radialGradient id="bal2" cx="35%" cy="30%" r="75%">
+                <stop offset="0%" stop-color="#d6eefb"/><stop offset="70%" stop-color="#a9d8f2"/><stop offset="100%" stop-color="#86c3e6"/>
+              </radialGradient>
+              <radialGradient id="bal3" cx="35%" cy="30%" r="75%">
+                <stop offset="0%" stop-color="#ffffff"/><stop offset="70%" stop-color="#d9eefa"/><stop offset="100%" stop-color="#b7dcf2"/>
+              </radialGradient>
+              <linearGradient id="ribbon" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#7cc6ea"/><stop offset="100%" stop-color="#3b9fd0"/>
+              </linearGradient>
+              <linearGradient id="box" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stop-color="#e9e6e1"/><stop offset="50%" stop-color="#fbfaf8"/><stop offset="100%" stop-color="#dedad4"/>
+              </linearGradient>
+
+              <g id="balloon">
+                <path d="M0 62 L-7 74 L7 74 Z" fill="#2f87b8"/>
+                <ellipse cx="0" cy="0" rx="46" ry="60" fill="url(#bal1)"/>
+                <ellipse cx="-16" cy="-24" rx="9" ry="16" fill="#fff" opacity=".35" transform="rotate(25 -16 -24)"/>
+              </g>
+
+              <g id="gift">
+                <rect x="-130" y="30" width="260" height="200" fill="url(#box)"/>
+                <rect x="-142" y="14" width="284" height="54" rx="4" fill="#f6f4f1" stroke="#e1ddd6"/>
+                <rect x="-22" y="14" width="44" height="216" fill="url(#ribbon)"/>
+                <g fill="url(#ribbon)" stroke="#2d86b8" stroke-width="1.5">
+                  <path d="M0 10 C-40 -60 -120 -62 -118 -20 C-116 15 -50 22 0 10Z"/>
+                  <path d="M0 10 C40 -60 120 -62 118 -20 C116 15 50 22 0 10Z"/>
+                  <path d="M0 8 C-20 -70 -70 -90 -80 -60 C-86 -40 -40 -10 0 8Z"/>
+                  <path d="M0 8 C20 -70 70 -90 80 -60 C86 -40 40 -10 0 8Z"/>
+                  <path d="M0 10 C-10 30 -60 52 -80 40 C-92 30 -50 8 0 10Z"/>
+                  <path d="M0 10 C10 30 60 52 80 40 C92 30 50 8 0 10Z"/>
+                </g>
+                <ellipse cx="0" cy="8" rx="20" ry="16" fill="#4fa9d6" stroke="#2d86b8" stroke-width="1.5"/>
+                <path d="M-70 -30 C-60 -45 -30 -45 -20 -22" fill="none" stroke="#c8ebfb" stroke-width="3" stroke-linecap="round" opacity=".7"/>
+                <path d="M70 -30 C60 -45 30 -45 20 -22" fill="none" stroke="#c8ebfb" stroke-width="3" stroke-linecap="round" opacity=".7"/>
+              </g>
+            </defs>
+
+            <g id="bunting"></g>
+
+            <!-- soft light balloons in the lower sides -->
+            <g opacity=".8">
+              <ellipse cx="85" cy="780" rx="62" ry="82" fill="url(#bal3)"/>
+              <ellipse cx="710" cy="745" rx="62" ry="82" fill="url(#bal3)"/>
+              <ellipse cx="45" cy="900" rx="58" ry="78" fill="url(#bal2)"/>
+              <ellipse cx="760" cy="880" rx="56" ry="76" fill="url(#bal2)"/>
+            </g>
+            <g stroke="#bcd6e6" stroke-width="1.5" fill="none" opacity=".8">
+              <path d="M85 862 C80 920 70 960 60 1010"/>
+              <path d="M710 827 C712 900 720 950 735 1000"/>
+            </g>
+
+            <!-- strings -->
+            <g stroke="#aebfcc" stroke-width="1.2" fill="none">
+              <path d="M130 345 C150 380 190 400 245 430"/>
+              <path d="M120 270 C130 330 165 390 230 440"/>
+              <path d="M670 345 C650 380 605 400 555 430"/>
+              <path d="M680 270 C670 330 635 390 570 440"/>
+            </g>
+
+            <!-- lighter balloons peeking behind photo -->
+            <ellipse cx="205" cy="410" rx="44" ry="58" fill="url(#bal2)" opacity=".75"/>
+            <ellipse cx="590" cy="408" rx="44" ry="58" fill="url(#bal2)" opacity=".75"/>
+
+            <!-- main balloon clusters -->
+            <use href="#balloon" transform="translate(112 240) scale(.95)"/>
+            <use href="#balloon" transform="translate(98 336) scale(.95)"/>
+            <use href="#balloon" transform="translate(682 238) scale(.95)"/>
+            <use href="#balloon" transform="translate(696 334) scale(.95)"/>
+
+            <!-- gift boxes -->
+            <use href="#gift" transform="translate(110 985) scale(.95)"/>
+            <use href="#gift" transform="translate(684 985) scale(.95)"/>
+            <use href="#gift" transform="translate(397 1000) scale(1.05)"/>
+          </svg>
+
+          <!-- Curved text -->
+          <div class="arc" id="arc"></div>
+
+          <!-- Photo -->
+          <div class="photo-wrap"><img id="pPhoto" alt=""></div>
+
+          <!-- Text content -->
+          <div class="content">
+            <div class="c-name" id="pName"></div>
+            <div class="c-event" id="pEvent"></div>
+            <div class="c-month" id="pMonth"></div>
+            <div class="c-dateRow">
+              <div class="c-side" id="pDay"></div>
+              <div class="c-date" id="pDate"></div>
+              <div class="c-side c-time" id="pTime"></div>
+            </div>
+            <div class="c-addr" id="pAddr"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast">Downloaded successfully!</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+
+  const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+  /* ---------- Placeholder photo ---------- */
+  $('pPhoto').src = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320"><rect width="320" height="320" fill="#3a9cd0"/>' +
+    '<circle cx="160" cy="125" r="56" fill="#cfe9f7"/><path d="M40 320 C45 230 110 200 160 200 C210 200 275 230 280 320Z" fill="#cfe9f7"/></svg>'
+  );
+
+  /* ---------- Text bindings ---------- */
+  [['name','pName'],['event','pEvent'],['time','pTime'],['address','pAddr']].forEach(([i, o]) => {
+    const inp = $(i), out = $(o);
+    const up = () => { out.textContent = inp.value; };
+    inp.addEventListener('input', up); up();
+  });
+
+  /* ---------- Month / Date / Year / auto Day ---------- */
+  const monthSel = $('month'), dateSel = $('date'), yearInp = $('year'), dayInp = $('day');
+
+  MONTHS.forEach((m, i) => {
+    const o = document.createElement('option');
+    o.value = i; o.textContent = m;
+    monthSel.appendChild(o);
+  });
+
+  function daysInMonth(y, m) { return new Date(y, m + 1, 0).getDate(); }
+
+  function fillDates() {
+    const y = parseInt(yearInp.value, 10) || new Date().getFullYear();
+    const m = parseInt(monthSel.value, 10);
+    const total = daysInMonth(y, m);
+    const prev = parseInt(dateSel.value, 10) || 1;
+    dateSel.innerHTML = '';
+    for (let d = 1; d <= total; d++) {
+      const o = document.createElement('option');
+      o.value = d; o.textContent = d;
+      dateSel.appendChild(o);
+    }
+    dateSel.value = Math.min(prev, total);
+  }
+
+  function updateDate() {
+    const y = parseInt(yearInp.value, 10) || new Date().getFullYear();
+    const m = parseInt(monthSel.value, 10);
+    const d = parseInt(dateSel.value, 10) || 1;
+    const dayName = DAYS[new Date(y, m, d).getDay()];
+    dayInp.value = dayName;
+    $('pMonth').textContent = MONTHS[m];
+    $('pDate').textContent = d;
+    $('pDay').textContent = dayName;
+  }
+
+  monthSel.addEventListener('change', () => { fillDates(); updateDate(); });
+  yearInp.addEventListener('input',  () => { fillDates(); updateDate(); });
+  dateSel.addEventListener('change', updateDate);
+
+  monthSel.value = 9;      // October
+  fillDates();
+  dateSel.value = 20;
+  updateDate();
+
+  /* ---------- Image upload ---------- */
+  $('photo').addEventListener('change', (e) => {
+    const f = e.target.files && e.target.files[0];
+    if (!f) return;
+    const r = new FileReader();
+    r.onload = (ev) => { $('pPhoto').src = ev.target.result; };
+    r.readAsDataURL(f);
+  });
+
+  /* ---------- Curved text "YOU ARE INVITED TO" ---------- */
+  (function buildArc() {
+    const text = 'YOU ARE INVITED TO';
+    const R = 214;                 // distance from photo centre (397,382) to the top of the letters
+    const CY = 382;
+    const steps = [...text].map(c => c === ' ' ? 4.2 : 5.5);
+    const total = steps.reduce((a, b) => a + b, 0);
+    let angle = -total / 2;
+    const host = $('arc');
+    [...text].forEach((ch, i) => {
+      const a = angle + steps[i] / 2;
+      angle += steps[i];
+      if (ch === ' ') return;
+      const s = document.createElement('span');
+      s.textContent = ch;
+      s.style.top = (CY - R) + 'px';
+      s.style.transformOrigin = '0px ' + R + 'px';
+      s.style.transform = 'rotate(' + a.toFixed(2) + 'deg) translateX(-50%)';
+      host.appendChild(s);
+    });
+  })();
+
+  /* ---------- Bunting ---------- */
+  (function buildBunting() {
+    const g = $('bunting');
+    const NS = 'http://www.w3.org/2000/svg';
+    const colors = ['#1d7896', '#2a8fae'];
+    const quad = (p0, p1, p2, t) => { const u = 1 - t; return { x: u*u*p0.x + 2*u*t*p1.x + t*t*p2.x, y: u*u*p0.y + 2*u*t*p1.y + t*t*p2.y }; };
+    const swags = [
+      [{x:-20,y:40},  {x:150,y:190}, {x:330,y:20},  9],
+      [{x:300,y:-10}, {x:520,y:140}, {x:700,y:10},  9],
+      [{x:640,y:-10}, {x:760,y:70},  {x:830,y:90},  5],
+    ];
+    swags.forEach(([a, c, b, n]) => {
+      let d = 'M' + a.x + ' ' + a.y;
+      for (let i = 1; i <= 24; i++) { const p = quad(a, c, b, i / 24); d += ' L' + p.x.toFixed(1) + ' ' + p.y.toFixed(1); }
+      const rope = document.createElementNS(NS, 'path');
+      rope.setAttribute('d', d); rope.setAttribute('fill', 'none');
+      rope.setAttribute('stroke', '#1d7896'); rope.setAttribute('stroke-width', '2');
+      g.appendChild(rope);
+      for (let i = 0; i < n; i++) {
+        const t0 = (i + 0.12) / n, t1 = (i + 0.88) / n;
+        const p0 = quad(a, c, b, t0), p1 = quad(a, c, b, t1), pm = quad(a, c, b, (t0 + t1) / 2);
+        const dx = p1.x - p0.x, dy = p1.y - p0.y, len = Math.hypot(dx, dy) || 1;
+        let nx = -dy / len, ny = dx / len;
+        if (ny < 0) { nx = -nx; ny = -ny; }
+        const h = len * 1.15;
+        const tip = { x: pm.x + nx * h, y: pm.y + ny * h };
+        const tri = document.createElementNS(NS, 'path');
+        tri.setAttribute('d', `M${p0.x.toFixed(1)} ${p0.y.toFixed(1)} L${p1.x.toFixed(1)} ${p1.y.toFixed(1)} L${tip.x.toFixed(1)} ${tip.y.toFixed(1)} Z`);
+        tri.setAttribute('fill', colors[i % 2]);
+        g.appendChild(tri);
+      }
+    });
+  })();
+
+  /* ---------- Responsive preview scaling ---------- */
+  const fit = $('previewFit'), scaler = $('previewScale'), panel = $('previewPanel');
+  function applyScale() {
+    const avail = panel.clientWidth || window.innerWidth;
+    const s = Math.min(1, avail / 794);
+    scaler.style.transform = 'scale(' + s + ')';
+    fit.style.width = (794 * s) + 'px';
+    fit.style.height = (1123 * s) + 'px';
+  }
+  window.addEventListener('resize', applyScale);
+  applyScale();
+
+  /* ---------- PDF (single A4 page) ---------- */
+  const btn = $('downloadBtn'), toast = $('toast');
+  function showToast(msg) {
+    toast.textContent = msg; toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3500);
+  }
+
+  btn.addEventListener('click', async () => {
+    btn.disabled = true; btn.textContent = 'Generating PDF…';
+    let holder = null;
+    try {
+      if (document.fonts && document.fonts.ready) await document.fonts.ready;
+
+      // Clean, unscaled, un-shifted copy of the card at the top-left of the page
+      holder = document.createElement('div');
+      holder.style.cssText = 'position:fixed;left:0;top:0;width:794px;height:1123px;overflow:hidden;z-index:-1;background:#fff;';
+      const clone = $('card').cloneNode(true);
+      clone.removeAttribute('id');
+      clone.style.boxShadow = 'none';
+      clone.style.margin = '0';
+      holder.appendChild(clone);
+      document.body.appendChild(holder);
+
+      const canvas = await html2canvas(clone, {
+        scale: 3, useCORS: true, allowTaint: true, backgroundColor: '#ffffff',
+        width: 794, height: 1123, scrollX: 0, scrollY: 0
+      });
+
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+      pdf.addImage(canvas.toDataURL('image/jpeg', 0.98), 'JPEG', 0, 0, 210, 297);
+      const safe = ($('name').value || 'invitation').trim().replace(/[^\w\-]+/g, '_');
+      pdf.save(safe + '_Birthday_Invitation.pdf');
+
+      showToast('Downloaded successfully!');
+      alert('Downloaded successfully!');
+    } catch (err) {
+      console.error(err);
+      alert('Sorry, the PDF could not be generated. Please try again.');
+    } finally {
+      if (holder && holder.parentNode) holder.parentNode.removeChild(holder);
+      btn.disabled = false; btn.textContent = '⬇ Download PDF';
+    }
+  });
+})();
+</script>
+</body>
+</html>
