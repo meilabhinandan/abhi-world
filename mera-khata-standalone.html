@@ -1,0 +1,249 @@
+<!DOCTYPE html><html lang="en" data-theme="dark"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Budget Manager</title>
+<style>
+:root{--bg:#07050f;--gl:rgba(255,255,255,.07);--bd:rgba(255,255,255,.18);--tx:#f4f1ff;--mu:#a9a3c4;--ac:#8b5cf6;--gr:#34d399;--rd:#fb7185;--bl:#60a5fa}
+[data-theme=light]{--bg:#eceaf7;--gl:rgba(255,255,255,.6);--bd:rgba(80,60,160,.22);--tx:#1c1633;--mu:#5d5780}
+*{box-sizing:border-box}body{margin:0;font-family:-apple-system,"SF Pro Display","Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--tx);min-height:100vh}
+.bg{position:fixed;inset:0;z-index:-1;overflow:hidden}.bg i{position:absolute;border-radius:50%;filter:blur(90px);opacity:.55;animation:fl 14s ease-in-out infinite alternate}
+.bg i:nth-child(1){width:520px;height:520px;background:#5b21b6;top:-120px;left:-100px}.bg i:nth-child(2){width:460px;height:460px;background:#1d4ed8;bottom:-120px;right:-80px;animation-delay:-5s}.bg i:nth-child(3){width:300px;height:300px;background:#a78bfa;top:40%;left:45%;animation-delay:-9s}
+@keyframes fl{to{transform:translate(60px,40px) scale(1.15)}}
+.glass{background:var(--gl);border:1px solid var(--bd);backdrop-filter:blur(24px) saturate(160%);-webkit-backdrop-filter:blur(24px) saturate(160%);border-radius:22px;box-shadow:0 10px 40px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.18)}
+[hidden]{display:none!important}
+#login{min-height:100vh;display:grid;place-items:center;padding:20px}.login{width:380px;max-width:100%;padding:34px;animation:zin .7s cubic-bezier(.2,.9,.3,1.2)}
+.logo{width:64px;height:64px;border-radius:20px;background:linear-gradient(135deg,var(--ac),var(--bl));display:grid;place-items:center;font-size:30px;margin:0 auto 12px;color:#fff;box-shadow:0 0 30px var(--ac);animation:pulse 3s infinite}
+@keyframes pulse{50%{box-shadow:0 0 50px var(--bl)}}@keyframes zin{from{opacity:0;transform:scale(.85) translateY(20px)}}
+h1,h3{margin:0}.login h1{text-align:center}.sub{text-align:center;color:var(--mu);margin:4px 0 18px}
+label{display:block;font-size:12px;color:var(--mu);margin:10px 0}input,select,textarea{width:100%;margin-top:5px;padding:11px 13px;border-radius:13px;border:1px solid var(--bd);background:rgba(255,255,255,.08);color:var(--tx);font:inherit;outline:none;transition:.2s}
+select option{color:#111}input:focus,select:focus,textarea:focus{border-color:var(--ac);box-shadow:0 0 0 3px rgba(139,92,246,.35)}
+.btn{border:0;border-radius:14px;padding:11px 20px;font:600 14px inherit;color:#fff;background:linear-gradient(135deg,#7c3aed,#3b82f6);cursor:pointer;transition:.2s;box-shadow:0 6px 20px rgba(124,58,237,.4);text-decoration:none;display:inline-block}
+.btn:hover{transform:translateY(-2px)}.btn:active{transform:scale(.97)}.btn.ghost{background:var(--gl);border:1px solid var(--bd);box-shadow:none;color:var(--tx)}.btn.red{background:linear-gradient(135deg,#e11d48,#fb7185)}.btn.sm{padding:6px 11px;font-size:12px;border-radius:10px}.wide{width:100%;margin-top:6px}
+.link{background:none;border:0;color:var(--bl);cursor:pointer;display:block;margin:14px auto 0;font:inherit}.err{color:var(--rd);font-size:13px;min-height:16px;margin:6px 0}
+#app{display:flex;gap:18px;padding:18px;min-height:100vh}#nav{width:230px;flex:none;padding:16px 12px;position:sticky;top:18px;height:calc(100vh - 36px);overflow:auto;display:flex;flex-direction:column;gap:4px}
+.brand{font-weight:700;font-size:20px;padding:6px 12px 14px}.nv{display:flex;gap:10px;align-items:center;padding:11px 13px;border-radius:14px;border:0;background:none;color:var(--tx);font:inherit;cursor:pointer;text-align:left;transition:.2s}
+.nv:hover{background:rgba(255,255,255,.1);transform:translateX(3px)}.nv.on{background:linear-gradient(135deg,rgba(124,58,237,.7),rgba(59,130,246,.5));color:#fff;box-shadow:0 0 18px rgba(124,58,237,.5)}.nv span{width:20px;text-align:center}
+main{flex:1;min-width:0}.top{display:flex;justify-content:space-between;align-items:center;padding:14px 22px;margin-bottom:18px;flex-wrap:wrap;gap:8px}.top h2{margin:0}
+.clock{text-align:right}.clock b{display:block;font-size:12px;letter-spacing:.5px;color:var(--mu)}.clock span{font-size:22px;font-weight:700}
+#view>*{animation:up .45s ease both}@keyframes up{from{opacity:0;transform:translateY(14px)}}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:18px}.card{padding:18px}.card small{color:var(--mu);font-size:11px;letter-spacing:.6px}.card b{display:block;font-size:24px;margin-top:6px}
+.p{padding:22px;margin-bottom:18px}.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;margin-bottom:18px}.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.row.end{justify-content:flex-end;margin-top:14px}.c{justify-content:center}
+.inc-c{color:var(--gr)}.exp-c{color:var(--rd)}.big{font:700 18px inherit;padding:30px 50px;border-radius:20px;border:1px solid var(--bd);color:#fff;cursor:pointer;transition:.25s}.big:hover{transform:translateY(-4px) scale(1.04)}.big.inc{background:linear-gradient(135deg,#059669,#34d399)}.big.exp{background:linear-gradient(135deg,#e11d48,#fb7185)}
+.tw{overflow:auto}table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:10px 8px;text-align:left;border-bottom:1px solid var(--bd);white-space:nowrap}th{color:var(--mu);font-size:11px;letter-spacing:.5px}td.wrap{white-space:normal;min-width:140px}
+.filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:14px}.filters label{margin:0}
+.bar{height:9px;border-radius:9px;background:rgba(255,255,255,.12);overflow:hidden;margin:6px 0 12px}.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--ac),var(--bl));transition:width .8s}.bar.bad i{background:var(--rd)}
+.alert{padding:12px 16px;border-radius:14px;background:rgba(251,113,133,.18);border:1px solid var(--rd);margin-bottom:12px}.banner{padding:12px 18px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(6px);display:grid;place-items:center;z-index:50;padding:16px;animation:fi .25s}.ov.out{opacity:0;transition:.2s}@keyframes fi{from{opacity:0}}
+.pop{padding:28px;width:480px;max-width:100%;max-height:92vh;overflow:auto;animation:zin .45s cubic-bezier(.2,.9,.3,1.2)}.center-t{text-align:center}
+.tick{width:84px;height:84px;margin:0 auto 12px;display:block}.tick circle{fill:none;stroke:var(--gr);stroke-width:3;stroke-dasharray:151;stroke-dashoffset:151;animation:dr .6s forwards}.tick path{fill:none;stroke:var(--gr);stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:40;stroke-dashoffset:40;animation:dr .4s .5s forwards}@keyframes dr{to{stroke-dashoffset:0}}
+.spin{width:44px;height:44px;border:4px solid var(--bd);border-top-color:var(--ac);border-radius:50%;margin:16px auto;animation:sp .8s linear infinite}@keyframes sp{to{transform:rotate(360deg)}}
+.chip{display:inline-block;padding:2px 9px;border-radius:99px;font-size:11px}.chip.on{background:rgba(52,211,153,.2);color:var(--gr)}.chip.off{background:rgba(251,113,133,.2);color:var(--rd)}
+svg.ch{width:100%;height:auto}@media(max-width:800px){#app{flex-direction:column}#nav{width:auto;height:auto;position:static;flex-direction:row;overflow-x:auto}.brand{display:none}.nv{white-space:nowrap}}
+</style></head><body>
+<div class="bg"><i></i><i></i><i></i></div>
+<section id="login"><form id="lf" class="glass login"><div class="logo">₹</div><h1>Budget Manager</h1><p class="sub">Sign in to continue</p>
+<label>User ID<input name="uid" required autocomplete="username"></label><label>Password<input name="password" type="password" required autocomplete="current-password"></label>
+<p class="err" id="lerr"></p><button class="btn wide">Login</button><button type="button" id="setup" class="link" hidden>First-time owner setup</button><button type="button" id="trouble" class="link">Having Trouble?</button></form></section>
+<div id="app" hidden><nav id="nav" class="glass"></nav><main><header class="glass top"><h2 id="ttl"></h2><div class="clock"><b id="date"></b><span id="time"></span></div></header><div id="view"></div></main></div>
+<script>
+/*GEN*/
+const crcT=(()=>{let t=[];for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
+const crc=b=>{let c=-1;for(const x of b)c=crcT[(c^x)&255]^(c>>>8);return(c^-1)>>>0};
+function zip(files,mime){const E=new TextEncoder(),parts=[],cen=[];let off=0;
+ for(const[n,d]of files){const nb=E.encode(n),db=E.encode(d),c=crc(db);
+  const lh=new DataView(new ArrayBuffer(30));lh.setUint32(0,0x04034b50,true);lh.setUint16(4,20,true);lh.setUint16(12,0x21,true);lh.setUint32(14,c,true);lh.setUint32(18,db.length,true);lh.setUint32(22,db.length,true);lh.setUint16(26,nb.length,true);
+  parts.push(new Uint8Array(lh.buffer),nb,db);
+  const ch=new DataView(new ArrayBuffer(46));ch.setUint32(0,0x02014b50,true);ch.setUint16(4,20,true);ch.setUint16(6,20,true);ch.setUint16(14,0x21,true);ch.setUint32(16,c,true);ch.setUint32(20,db.length,true);ch.setUint32(24,db.length,true);ch.setUint16(28,nb.length,true);ch.setUint32(42,off,true);
+  cen.push(new Uint8Array(ch.buffer),nb);off+=30+nb.length+db.length}
+ const cs=cen.reduce((s,x)=>s+x.length,0),e=new DataView(new ArrayBuffer(22));e.setUint32(0,0x06054b50,true);e.setUint16(8,files.length,true);e.setUint16(10,files.length,true);e.setUint32(12,cs,true);e.setUint32(16,off,true);
+ return new Blob([...parts,...cen,new Uint8Array(e.buffer)],{type:mime})}
+const X=s=>String(s??'').replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g,'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const colL=i=>String.fromCharCode(65+i);
+const rowHead=R=>(R.all?['Member']:[]).concat(['Date','Name','Category','Payment Method','Amount (INR)','Description','Detailed Notes']);
+const rowArr=(R,r)=>(R.all?[r.member]:[]).concat([r.date,r.name,r.category,r.method,r.amount,r.description||'',r.notes||'']);
+const sumH=['Period','Income','Expense','Balance'];
+function xlsxBlob(R){
+ const sheet=blocks=>{let y=0,out='';for(const b of blocks){for(const[ri,row]of b.rows.entries()){y++;out+=`<row r="${y}">`+row.map((v,i)=>{const s=b.head&&ri===0?' s="1"':'',r=colL(i)+y;return typeof v==='number'?`<c r="${r}"${s}><v>${v}</v></c>`:`<c r="${r}"${s} t="inlineStr"><is><t xml:space="preserve">${X(v)}</t></is></c>`}).join('')+'</row>'}y++}
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><cols><col min="1" max="9" width="22" customWidth="1"/></cols><sheetData>${out}</sheetData></worksheet>`};
+ const T=(h,rows)=>({head:1,rows:[h,...rows]});
+ const S=[['Summary',sheet([{rows:[['BUDGET REPORT'],['User Name',R.nm],['User ID',R.id],['Report Generated',R.gen],['Period',R.period],['Total Income',R.ti],['Total Expenses',R.te],['Current Balance',R.ti-R.te]]},T(['Monthly Summary','Income','Expense','Balance'],R.mon),T(['Yearly Summary','Income','Expense','Balance'],R.yr)])],
+  ['Income',sheet([T(rowHead(R),R.inc.map(r=>rowArr(R,r)))])],['Expenses',sheet([T(rowHead(R),R.exp.map(r=>rowArr(R,r)))])]];
+ const ns='xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"',H='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
+ return zip([['[Content_Types].xml',H+'<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>'+S.map((_,i)=>`<Override PartName="/xl/worksheets/sheet${i+1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join('')+'</Types>'],
+ ['_rels/.rels',H+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>'],
+ ['xl/workbook.xml',H+`<workbook ${ns} xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>${S.map((s,i)=>`<sheet name="${s[0]}" sheetId="${i+1}" r:id="rId${i+1}"/>`).join('')}</sheets></workbook>`],
+ ['xl/_rels/workbook.xml.rels',H+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+S.map((_,i)=>`<Relationship Id="rId${i+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i+1}.xml"/>`).join('')+`<Relationship Id="rId9" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`],
+ ['xl/styles.xml',H+`<styleSheet ${ns}><fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font></fonts><fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF4B2A8A"/></patternFill></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="2"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/></cellXfs></styleSheet>`],
+ ...S.map((s,i)=>[`xl/worksheets/sheet${i+1}.xml`,s[1]])],'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')}
+function docxBlob(R){
+ const p=(t,o='')=>`<w:p><w:r><w:rPr>${o}</w:rPr><w:t xml:space="preserve">${X(t)}</w:t></w:r></w:p>`;
+ const H=t=>p(t,'<w:b/><w:color w:val="4B2A8A"/><w:sz w:val="30"/>');
+ const bd=['top','left','bottom','right','insideH','insideV'].map(s=>`<w:${s} w:val="single" w:sz="4" w:color="999999"/>`).join('');
+ const tbl=(h,rows)=>`<w:tbl><w:tblPr><w:tblW w:w="5000" w:type="pct"/><w:tblBorders>${bd}</w:tblBorders></w:tblPr>`+[h,...rows].map((r,i)=>`<w:tr>`+r.map(c=>`<w:tc>${i?'':'<w:tcPr><w:shd w:val="clear" w:color="auto" w:fill="4B2A8A"/></w:tcPr>'}${p(c,i?'<w:sz w:val="17"/>':'<w:b/><w:color w:val="FFFFFF"/><w:sz w:val="17"/>')}</w:tc>`).join('')+'</w:tr>').join('')+'</w:tbl>'+p('');
+ const body=p('BUDGET REPORT','<w:b/><w:color w:val="2A1458"/><w:sz w:val="44"/>')+[['User Name',R.nm],['User ID',R.id],['Report Generated',R.gen],['Period',R.period],['Total Income',R.ti],['Total Expenses',R.te],['Current Balance',R.ti-R.te]].map(m=>p(m[0]+': '+m[1],'<w:sz w:val="22"/>')).join('')
+  +H('Detailed Income Records')+tbl(rowHead(R),R.inc.map(r=>rowArr(R,r).map(String)))+H('Detailed Expense Records')+tbl(rowHead(R),R.exp.map(r=>rowArr(R,r).map(String)))+H('Monthly Summary')+tbl(sumH,R.mon.map(r=>r.map(String)))+H('Yearly Summary')+tbl(sumH,R.yr.map(r=>r.map(String)));
+ const hd='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
+ return zip([['[Content_Types].xml',hd+'<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>'],
+ ['_rels/.rels',hd+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>'],
+ ['word/document.xml',hd+`<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>${body}<w:sectPr><w:pgSz w:w="16838" w:h="11906" w:orient="landscape"/><w:pgMar w:top="900" w:right="900" w:bottom="900" w:left="900" w:header="400" w:footer="400" w:gutter="0"/></w:sectPr></w:body></w:document>`]],'application/vnd.openxmlformats-officedocument.wordprocessingml.document')}
+function pdfBlob(R){
+ const esc=s=>String(s??'').replace(/₹/g,'Rs. ').replace(/[^\x20-\x7E]/g,'?').replace(/[\\()]/g,'\\$&');
+ const money=n=>'Rs. '+Number(n).toLocaleString('en-IN',{maximumFractionDigits:2});
+ const pages=[];let cs;const T=(x,y,s,sz=9,b=0,c='0 0 0')=>cs.push(`BT /F${b?2:1} ${sz} Tf ${c} rg ${x} ${y} Td (${esc(s)}) Tj ET`),Rc=(x,y,w,h,c)=>cs.push(`${c} rg ${x} ${y} ${w} ${h} re f`);
+ let y;const np=()=>{cs=[];pages.push(cs);y=800};np();
+ Rc(0,752,595,90,'0.16 0.08 0.35');T(40,805,'BUDGET REPORT',22,1,'1 1 1');T(40,780,`${R.nm}  |  ID: ${R.id}`,10,0,'1 1 1');T(40,764,'Generated: '+R.gen+'   Period: '+R.period,9,0,'1 1 1');y=730;
+ [['Total Income',R.ti],['Total Expenses',R.te],['Current Balance',R.ti-R.te]].forEach(m=>{T(40,y,m[0]+': '+money(m[1]),11,1);y-=18});y-=8;
+ const wrap=(s,n)=>{const o=[];let l='';for(const w of String(s).split(/\s+/)){if((l+' '+w).length>n){o.push(l);l=w}else l=l?l+' '+w:w}if(l)o.push(l);return o};
+ const table=(title,head,rows,w,notes)=>{if(y<120)np();T(40,y,title,13,1,'0.29 0.16 0.54');y-=18;
+  const row=(c,b)=>{if(y<50)np();if(b)Rc(40,y-4,515,15,'0.29 0.16 0.54');let x=40;c.forEach((v,i)=>{let s=String(v),mx=Math.floor(w[i]/4.6);if(s.length>mx)s=s.slice(0,mx-1)+'..';T(x+3,y,s,8.5,b,b?'1 1 1':'0 0 0');x+=w[i]});y-=16};
+  row(head,1);rows.forEach((r,i)=>{row(r.c||r,0);if(r.n)wrap(r.n,120).forEach(l=>{if(y<50)np();T(48,y+2,l,7.5,0,'0.4 0.4 0.4');y-=10})});if(!rows.length){T(48,y,'No records.',9);y-=14}y-=12};
+ const hd=(R.all?['Member']:[]).concat(['Date','Name','Category','Method','Amount']),w=R.all?[75,60,105,85,75,115]:[70,150,110,90,95];
+ const L=a=>a.map(r=>({c:(R.all?[r.member]:[]).concat([r.date,r.name,r.category,r.method,money(r.amount)]),n:[r.description,r.notes].filter(Boolean).join(' - ')}));
+ table('Detailed Income Records',hd,L(R.inc),w);table('Detailed Expense Records',hd,L(R.exp),w);
+ [['Monthly Summary',R.mon],['Yearly Summary',R.yr]].forEach(([t,a])=>table(t,sumH,a.map(r=>[r[0],money(r[1]),money(r[2]),money(r[3])]),[130,130,130,125]));
+ pages.forEach((p,i)=>p.push(`BT /F1 8 Tf 0.5 0.5 0.5 rg 268 22 Td (Page ${i+1} of ${pages.length}) Tj ET`));
+ const objs=['<< /Type /Catalog /Pages 2 0 R >>',`<< /Type /Pages /Kids [${pages.map((_,i)=>`${5+i*2} 0 R`).join(' ')}] /Count ${pages.length} >>`,'<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>','<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>'];
+ pages.forEach((p,i)=>{const s=p.join('\n');objs.push(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents ${6+i*2} 0 R >>`,`<< /Length ${s.length} >>\nstream\n${s}\nendstream`)});
+ let out='%PDF-1.4\n';const off=[];objs.forEach((o,i)=>{off.push(out.length);out+=`${i+1} 0 obj\n${o}\nendobj\n`});
+ const xr=out.length;out+=`xref\n0 ${objs.length+1}\n0000000000 65535 f \n`+off.map(o=>String(o).padStart(10,'0')+' 00000 n \n').join('')+`trailer\n<< /Size ${objs.length+1} /Root 1 0 R >>\nstartxref\n${xr}\n%%EOF`;
+ return new Blob([out],{type:'application/pdf'})}
+/*ENDGEN*/
+const $=s=>document.querySelector(s),TZ='Asia/Kolkata';
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const inr=n=>'₹'+Number(n||0).toLocaleString('en-IN',{maximumFractionDigits:2});
+const INC=['Salary','Freelancing','Business Income','Investment','Gift','Other'],EXP=['Room Rent','Food','Electricity','Mobile Recharge','Transport','Shopping','Health','Education','Other'],PAY=['Cash','UPI','Bank Transfer','Card','Cheque'];
+const PAGES=[['dashboard','Dashboard','◉'],['add','Add Transaction','＋'],['all','All Transactions','☰'],['income','Income History','↓'],['expense','Expense History','↑'],['budget','Budget Planner','◔'],['goals','Savings Goals','★'],['reports','Reports & Downloads','⇩'],['profile','Profile Settings','⚙'],['admin','Admin Panel','♛']];
+// ---- cloud (Google Sheets via Apps Script) ----
+const API_URL='https://script.google.com/macros/s/AKfycbwPP-sjJ8YJUUFFt5HuIGeNGQVJ_EBa2YQB2x21PMSCOQaiTn45Q9ZTd823oxUOhyrwjQ/exec',OWNER_UID='ABHINANDAN KUMAR SINGH';
+const CONFIGURED=!API_URL.includes('PASTE');
+let TOKEN=localStorage.getItem('bm_t')||'';
+async function api(a,d={}){let r,j;try{r=await fetch(API_URL,{method:'POST',body:JSON.stringify({a,token:TOKEN,...d})})}catch{throw Error('Server not reachable. Check your internet.')}
+ try{j=await r.json()}catch{throw Error('Server error. Check the Web App URL and that access is set to "Anyone".')}
+ if(j.auth&&me){TOKEN='';localStorage.removeItem('bm_t');alert('Session expired. Please login again.');location.reload()}
+ if(j.error)throw Error(j.error);return j}
+const rnd=n=>[...crypto.getRandomValues(new Uint8Array(n))].map(x=>'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789'[x%54]).join('');
+const today=()=>new Date().toLocaleDateString('en-CA',{timeZone:TZ});
+let me,view=null,page='dashboard',clockOn=false,TX=[],KV={};
+const U_=()=>view?view.id:undefined,tid=()=>view?view.id:me.id;
+const myTx=()=>TX;
+const kvg=k=>KV[k];const kvs=async(k,v)=>{await api('kv.set',{u:U_(),k,v});KV[k]=v};
+const sum=a=>a.reduce((s,t)=>s+t.amount,0),by=t=>TX.filter(x=>x.type===t);
+async function loadData(){const d=await api('data',{u:U_()});TX=d.tx;KV=d.kv}
+const tick='<svg class="tick" viewBox="0 0 52 52"><circle cx="26" cy="26" r="24"/><path d="M14 27l8 8 16-17"/></svg>';
+const OK='<button class="btn" style="margin-top:14px" onclick="this.closest(\'.ov\').remove()">OK</button>';
+function note(html,ms){const o=document.createElement('div');o.className='ov';o.innerHTML=`<div class="glass pop center-t">${html}</div>`;document.body.append(o);if(ms)setTimeout(()=>{o.classList.add('out');setTimeout(()=>o.remove(),250)},ms);return o}
+function modal(title,body,ok,fn){const o=document.createElement('div');o.className='ov';o.innerHTML=`<div class="glass pop"><h3 style="margin-bottom:8px">${title}</h3><form>${body}<p class="err"></p><div class="row end"><button type="button" class="btn ghost c">Cancel</button>${ok?`<button class="btn">${ok}</button>`:''}</div></form></div>`;document.body.append(o);
+ const close=()=>{o.classList.add('out');setTimeout(()=>o.remove(),200)};o.querySelector('.c').onclick=close;const f=o.querySelector('form');
+ f.onsubmit=async e=>{e.preventDefault();try{if(await fn?.(Object.fromEntries(new FormData(f)),f)!==false)close()}catch(x){o.querySelector('.err').textContent=x.message}}}
+const field=(l,n,v='',t='text',x='')=>`<label>${l}<input name="${n}" type="${t}" value="${esc(v)}" ${x}></label>`;
+const sel=(l,n,o,v)=>`<label>${l}<select name="${n}">${o.map(x=>`<option ${x==v?'selected':''}>${esc(x)}</option>`).join('')}</select></label>`;
+const banner=()=>view?`<div class="glass banner"><span>Viewing financial dashboard of <b>${esc(view.name)}</b></span><button class="btn sm" id="back">← Back to Admin</button></div>`:'';
+const bindBack=()=>{const b=$('#back');if(b)b.onclick=()=>{view=null;go('admin')}};
+document.documentElement.dataset.theme=localStorage.getItem('bm_theme')||'dark';
+
+// ---- boot / login ----
+const lerr=m=>$('#lerr').textContent=m;
+function saveSession(r){TOKEN=r.token;localStorage.setItem('bm_t',TOKEN);me=r.user}
+async function boot(){if(!CONFIGURED)return lerr('Setup pending: paste your Web App URL at the top of this file (see README).');
+ try{if(TOKEN){try{me=(await api('me')).user;return start()}catch{TOKEN='';localStorage.removeItem('bm_t')}}
+  $('#setup').hidden=!!(await api('owner_exists')).v}catch(e){lerr(e.message)}}
+boot();
+function welcome(){note(`${tick}<h2>WELCOME, ${esc(me.name.toUpperCase())}!</h2>`,3000);start()}
+$('#lf').onsubmit=async e=>{e.preventDefault();lerr('');if(!CONFIGURED)return boot();const d=Object.fromEntries(new FormData(e.target)),btn=e.target.querySelector('.btn');btn.disabled=true;btn.textContent='Logging in…';
+ try{saveSession(await api('login',{uid:d.uid,password:d.password}));e.target.reset();welcome()}catch(x){lerr(x.message)}btn.disabled=false;btn.textContent='Login'};
+$('#setup').onclick=()=>modal('First-time Owner Setup',`<p style="color:var(--mu)">Owner ID: <b>${OWNER_UID}</b></p>`+field('Choose owner password (min 6)','pw','','password','required minlength=6')+field('Confirm password','pw2','','password','required'),'Create Owner',async d=>{
+ if(d.pw!==d.pw2)throw Error('Passwords do not match');saveSession(await api('setup',{pw:d.pw}));$('#setup').hidden=true;setTimeout(welcome,300)});
+$('#trouble').onclick=()=>note(`<h3>Having Trouble?</h3><p style="color:var(--mu)">Contact the Owner</p><p><a class="btn sm" href="mailto:sherlockofficial0@gmail.com">✉ sherlockofficial0@gmail.com</a></p><p><a class="btn sm" target="_blank" rel="noopener" href="https://wa.me/918757681959">WhatsApp 8757681959</a></p>${OK}`);
+function logout(){TOKEN='';localStorage.removeItem('bm_t');location.reload()}
+function start(){$('#login').hidden=true;$('#app').hidden=false;view=null;nav();go('dashboard');if(!clockOn){clockOn=true;clk();setInterval(clk,1000)}}
+function clk(){const n=new Date();$('#date').textContent=(n.toLocaleDateString('en-US',{weekday:'long',timeZone:TZ})+', '+n.toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric',timeZone:TZ})).toUpperCase();$('#time').textContent=n.toLocaleTimeString('en-US',{timeZone:TZ})}
+function nav(){$('#nav').innerHTML='<div class="brand">₹ Budget</div>'+PAGES.filter(p=>p[0]!=='admin'||me.role==='owner').map(p=>`<button class="nv" data-p="${p[0]}"><span>${p[2]}</span>${p[1]}</button>`).join('')+'<button class="nv" id="lo" style="margin-top:auto"><span>⏻</span>Logout</button>';
+ $('#nav').onclick=e=>{const b=e.target.closest('.nv');if(!b)return;if(b.id==='lo')logout();else{if(b.dataset.p==='admin')view=null;go(b.dataset.p)}}}
+async function go(p){page=p;document.querySelectorAll('.nv').forEach(b=>b.classList.toggle('on',b.dataset.p===p));$('#ttl').textContent=PAGES.find(x=>x[0]===p)[1];const v=$('#view');v.onclick=null;v.innerHTML='<div class="spin"></div>';
+ try{if(p==='admin'&&me.role!=='owner')throw Error('Owner only');if(p==='admin')view=null;if(p!=='admin'&&p!=='profile')await loadData();
+  await({dashboard,add:addPage,all:()=>hist(null),income:()=>hist('income'),expense:()=>hist('expense'),budget,goals,reports,profile,admin:adminPage}[p])()}catch(e){v.innerHTML=`<div class="glass p err">${esc(e.message||e)}</div>`}}
+
+// ---- dashboard ----
+function dashboard(){
+ const t=today(),m=t.slice(0,7),I=by('income'),E=by('expense'),bu=kvg('budget')||{},gl=kvg('goals')||[];
+ const f=(a,fn)=>sum(a.filter(fn)),cards=[['TOTAL INCOME',sum(I),'inc-c'],['TOTAL EXPENSE',sum(E),'exp-c'],['CURRENT BALANCE',sum(I)-sum(E),''],["TODAY'S INCOME",f(I,x=>x.date===t),'inc-c'],["TODAY'S EXPENSE",f(E,x=>x.date===t),'exp-c'],["THIS MONTH'S INCOME",f(I,x=>x.date.startsWith(m)),'inc-c'],["THIS MONTH'S EXPENSE",f(E,x=>x.date.startsWith(m)),'exp-c'],['TOTAL SAVINGS',gl.reduce((s,g)=>s+g.s,0),'']];
+ const spent=f(E,x=>x.date.startsWith(m)),al=[];
+ if(bu.target&&spent>bu.target)al.push(`Monthly budget exceeded: ${inr(spent)} of ${inr(bu.target)}`);else if(bu.target&&spent>bu.target*.8)al.push(`You have used over 80% of this month's budget (${inr(spent)} of ${inr(bu.target)})`);
+ Object.entries(bu.limits||{}).forEach(([c,l])=>{const s=f(E,x=>x.date.startsWith(m)&&x.category===c);if(l>0&&s>l)al.push(`${c}: limit ${inr(l)} exceeded (${inr(s)})`)});
+ const mm={};myTx().forEach(x=>{const k=x.date.slice(0,7);mm[k]=mm[k]||[0,0];mm[k][x.type==='income'?0:1]+=x.amount});const ks=Object.keys(mm).sort().slice(-6),mx=Math.max(1,...ks.flatMap(k=>mm[k]));
+ const bars=ks.map((k,i)=>{const x=20+i*62,h=v=>v/mx*150;return`<rect x="${x}" y="${170-h(mm[k][0])}" width="22" height="${h(mm[k][0])}" rx="5" fill="#34d399"/><rect x="${x+25}" y="${170-h(mm[k][1])}" width="22" height="${h(mm[k][1])}" rx="5" fill="#fb7185"/><text x="${x+24}" y="188" font-size="10" text-anchor="middle" fill="currentColor">${k.slice(2)}</text>`}).join('');
+ const cc={};E.forEach(x=>cc[x.category]=(cc[x.category]||0)+x.amount);const te=sum(E);
+ $('#view').innerHTML=banner()+al.map(a=>`<div class="alert">⚠ ${esc(a)}</div>`).join('')+`<div class="grid">${cards.map(c=>`<div class="glass card"><small>${c[0]}</small><b class="${c[2]}" data-n="${c[1]}">${inr(0)}</b></div>`).join('')}</div>
+ <div class="two"><div class="glass p"><h3>Monthly Comparison <small style="color:var(--mu)">(green income · red expense)</small></h3>${ks.length?`<svg class="ch" viewBox="0 0 400 196">${bars}</svg>`:'<p style="color:var(--mu)">No data yet</p>'}</div>
+ <div class="glass p"><h3>Expenses by Category</h3>${Object.entries(cc).sort((a,b)=>b[1]-a[1]).map(([c,v])=>`<div class="row" style="justify-content:space-between"><span>${esc(c)}</span><span>${inr(v)}</span></div><div class="bar"><i style="width:${v/te*100}%"></i></div>`).join('')||'<p style="color:var(--mu)">No expenses yet</p>'}</div></div>
+ <div class="glass p"><h3>Recent Transactions</h3><div class="tw"><table><tr><th>DATE</th><th>NAME</th><th>TYPE</th><th>CATEGORY</th><th>AMOUNT</th></tr>${[...myTx()].sort((a,b)=>b.date.localeCompare(a.date)||b.id-a.id).slice(0,6).map(x=>`<tr><td>${x.date}</td><td>${esc(x.name)}</td><td>${x.type}</td><td>${esc(x.category)}</td><td class="${x.type==='income'?'inc-c':'exp-c'}">${inr(x.amount)}</td></tr>`).join('')||'<tr><td colspan=5>No transactions yet</td></tr>'}</table></div></div>`;
+ bindBack();document.querySelectorAll('[data-n]').forEach(el=>{const to=+el.dataset.n,t0=performance.now();(function s(n){const p=Math.min(1,(n-t0)/800);el.textContent=inr(to*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(s)})(t0)})}
+
+// ---- transactions ----
+function txForm(type,t={}){const cats=type==='income'?INC:EXP,L=type==='income'?'Income':'Expense';
+ modal((t.id?'Edit ':'Add ')+L,field(L+' Name','name',t.name,'text','required')+field('Amount (₹)','amount',t.amount,'number','required step="0.01" min="0.01"')+sel('Category','category',cats,t.category)+field('Date','date',t.date||today(),'date','required')+sel('Payment Method','method',PAY,t.method)+field('Description','description',t.description)+`<label>Detailed Notes<textarea name="notes" rows="3">${esc(t.notes)}</textarea></label>`,'SAVE '+L.toUpperCase(),
+ async d=>{const a=+d.amount;if(!(a>0))throw Error('Enter a valid amount');if(!d.name.trim())throw Error('Name is required');
+  const rec={type,name:d.name.trim(),amount:a,category:d.category,date:d.date,method:d.method,description:d.description,notes:d.notes};
+  await api('tx.save',{u:U_(),tx:{...rec,id:t.id}});
+  await go(page);note(`${tick}<h3>${L} ${t.id?'updated':'saved'} successfully!</h3>`,1800)})}
+function addPage(){$('#view').innerHTML=banner()+`<div class="glass p center-t"><h2>ADD TRANSACTION</h2><p style="color:var(--mu)">Select the transaction type</p><div class="row c"><button class="big inc" data-t="income">INCOME</button><button class="big exp" data-t="expense">EXPENSE</button></div></div>`;bindBack();$('#view').onclick=e=>{const b=e.target.closest('[data-t]');if(b)txForm(b.dataset.t)}}
+function hist(type){const tx=TX,cats=[...new Set([...INC,...EXP])],yrs=[...new Set(tx.map(x=>x.date.slice(0,4)))].sort().reverse();
+ $('#view').innerHTML=banner()+`<div class="glass p"><div class="filters"><label>Search<input id="fq" placeholder="Name, notes…"></label><label>Date<input id="fd" type="date"></label><label>Month<input id="fm" type="month"></label><label>Year<select id="fy"><option value="">All</option>${yrs.map(y=>`<option>${y}</option>`).join('')}</select></label><label>Category<select id="fc"><option value="">All</option>${cats.map(c=>`<option>${c}</option>`).join('')}</select></label><label>Sort<select id="fs"><option value="n">Newest first</option><option value="o">Oldest first</option><option value="h">Amount high→low</option><option value="l">Amount low→high</option></select></label></div><div id="tb" class="tw"></div></div>`;bindBack();
+ const draw=()=>{const q=$('#fq').value.toLowerCase(),d=$('#fd').value,m=$('#fm').value,y=$('#fy').value,c=$('#fc').value,s=$('#fs').value;
+  const a=tx.filter(x=>(!type||x.type===type)&&(!q||[x.name,x.description,x.notes,x.category].join(' ').toLowerCase().includes(q))&&(!d||x.date===d)&&(!m||x.date.startsWith(m))&&(!y||x.date.startsWith(y))&&(!c||x.category===c));
+  a.sort((p,q)=>s==='o'?p.date.localeCompare(q.date)||p.id-q.id:s==='h'?q.amount-p.amount:s==='l'?p.amount-q.amount:q.date.localeCompare(p.date)||q.id-p.id);
+  $('#tb').innerHTML=`<p>${a.length} records · Total <b>${inr(sum(a))}</b></p><table><tr><th>NAME</th>${type?'':'<th>TYPE</th>'}<th>AMOUNT</th><th>CATEGORY</th><th>DATE</th><th>PAYMENT</th><th>DESCRIPTION</th><th>NOTES</th><th></th></tr>${a.map(x=>`<tr><td>${esc(x.name)}</td>${type?'':`<td>${x.type}</td>`}<td class="${x.type==='income'?'inc-c':'exp-c'}">${inr(x.amount)}</td><td>${esc(x.category)}</td><td>${x.date}</td><td>${esc(x.method)}</td><td class="wrap">${esc(x.description)}</td><td class="wrap">${esc(x.notes)}</td><td><button class="btn sm ghost" data-e="${x.id}">Edit</button> <button class="btn sm red" data-d="${x.id}">Delete</button></td></tr>`).join('')||'<tr><td colspan=9>No records found</td></tr>'}</table>`};
+ draw();['fq','fd','fm','fy','fc','fs'].forEach(i=>$('#'+i).oninput=draw);
+ $('#tb').onclick=e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.e){const t=tx.find(x=>x.id==b.dataset.e);txForm(t.type,t)}
+  if(b.dataset.d)modal('Delete transaction?','<p>This cannot be undone. All totals will be updated.</p>','Delete',async()=>{await api('tx.del',{u:U_(),id:b.dataset.d});await go(page);note(`${tick}<h3>Deleted</h3>`,1200)})}}
+
+// ---- budget & goals ----
+function budget(){const bu=kvg('budget')||{},m=today().slice(0,7),E=by('expense').filter(x=>x.date.startsWith(m));
+ const pr=(l,s,lim)=>lim>0?`<div><div class="row" style="justify-content:space-between"><span>${esc(l)}</span><span>${inr(s)} / ${inr(lim)}</span></div><div class="bar ${s>lim?'bad':''}"><i style="width:${Math.min(100,s/lim*100)}%"></i></div></div>`:'';
+ $('#view').innerHTML=banner()+`<div class="two"><form id="bf" class="glass p"><h3>Budget Planner</h3>${field('Monthly Budget Target (₹)','target',bu.target||'','number','min="0"')}<h4>Category Limits (₹ / month)</h4>${EXP.map((c,i)=>field(c,'l'+i,(bu.limits||{})[c]||'','number','min="0"')).join('')}<button class="btn wide">Save Budget</button></form>
+ <div class="glass p"><h3>This Month</h3>${pr('Total spending',sum(E),bu.target)||'<p style="color:var(--mu)">Set a monthly target to track it.</p>'}${EXP.map(c=>pr(c,sum(E.filter(x=>x.category===c)),(bu.limits||{})[c])).join('')}</div></div>`;bindBack();
+ $('#bf').onsubmit=async e=>{e.preventDefault();const d=Object.fromEntries(new FormData(e.target)),limits={};EXP.forEach((c,i)=>{if(+d['l'+i]>0)limits[c]=+d['l'+i]});await kvs('budget',{target:+d.target||0,limits});note(`${tick}<h3>Budget saved</h3>`,1500);budget()}}
+function goals(){const gl=kvg('goals')||[];
+ $('#view').innerHTML=banner()+`<div class="row" style="margin-bottom:14px"><button class="btn" id="ng">+ New Goal</button></div><div class="grid">${gl.map((g,i)=>`<div class="glass card"><h3>${esc(g.n)}</h3><p>${inr(g.s)} / ${inr(g.t)}</p><div class="bar"><i style="width:${Math.min(100,g.s/g.t*100)}%"></i></div><button class="btn sm" data-a="${i}">+ Add money</button> <button class="btn sm red" data-x="${i}">Delete</button></div>`).join('')||'<div class="glass p">No goals yet.</div>'}</div>`;bindBack();
+ $('#ng').onclick=()=>modal('New Savings Goal',field('Goal name','n','','text','required')+field('Target (₹)','t','','number','required min="1"'),'Create',async d=>{gl.push({n:d.n,t:+d.t,s:0});await kvs('goals',gl);goals()});
+ $('#view').onclick=e=>{const b=e.target.closest('[data-a],[data-x]');if(!b)return;if(b.dataset.a)modal('Add to goal',field('Amount (₹)','a','','number','required min="1"'),'Add',async d=>{gl[b.dataset.a].s+=+d.a;await kvs('goals',gl);goals()});else modal('Delete goal?','','Delete',async()=>{gl.splice(b.dataset.x,1);await kvs('goals',gl);goals()})}}
+
+// ---- reports ----
+function range(k){const t=today(),d=new Date(t+'T00:00:00Z'),f=x=>x.toISOString().slice(0,10);
+ if(k==='daily')return[t,t];if(k==='weekly'){const s=new Date(d);s.setUTCDate(d.getUTCDate()-6);return[f(s),t]}
+ if(k==='monthly')return[t.slice(0,8)+'01',f(new Date(Date.UTC(d.getUTCFullYear(),d.getUTCMonth()+1,0)))];if(k==='yearly')return[t.slice(0,4)+'-01-01',t.slice(0,4)+'-12-31'];return['','']}
+async function buildR(ids,all,from,to){const fr=from||'0000-01-01',tt=to||'9999-12-31';
+ const d=await api('export',{ids}),nm=Object.fromEntries(d.users.map(p=>[p.id,p]));
+ const rows=d.tx.filter(x=>x.date>=fr&&x.date<=tt).sort((a,b)=>a.date.localeCompare(b.date)).map(x=>({...x,member:(nm[x.userId]||{}).name}));
+ const inc=rows.filter(r=>r.type==='income'),exp=rows.filter(r=>r.type==='expense');
+ const grp=n=>{const m={};rows.forEach(r=>{const k=r.date.slice(0,n);m[k]=m[k]||[k,0,0];m[k][r.type==='income'?1:2]+=r.amount});return Object.values(m).sort().map(([k,i,e])=>[k,i,e,i-e])};
+ const u=nm[ids[0]]||{};
+ return{nm:all?'All Members (Combined)':u.name,id:all?'ALL':u.uid,gen:new Date().toLocaleString('en-IN',{timeZone:TZ}),period:(from||to)?`${fr} to ${to||'...'}`:'Complete history',all,inc,exp,ti:sum(inc),te:sum(exp),mon:grp(7),yr:grp(4)}}
+async function dl(fmt,from,to,ids,all){const o=note('<h3>YOUR DETAILED BUDGET REPORT IS BEING PREPARED.</h3><div class="spin"></div>');
+ try{const R=await buildR(ids,all,from,to),b=({xlsx:xlsxBlob,docx:docxBlob,pdf:pdfBlob})[fmt](R);if(!b||!b.size)throw Error('File could not be generated');
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`budget-report-${String(R.id).replace(/\W+/g,'_')}.${fmt}`;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+  o.remove();note(`${tick}<h3>YOUR DETAILED BUDGET FILE IS READY! PLEASE CHECK YOUR DOWNLOADS FOLDER.</h3>${OK}`)}catch(e){o.remove();note(`<h3 class="exp-c">Download failed</h3><p>${esc(e.message)}</p>${OK}`)}}
+function reports(){$('#view').innerHTML=banner()+`<div class="glass p" style="max-width:560px"><h3>Download Report</h3>${sel('Report type','rg',['daily','weekly','monthly','yearly','custom','complete'],'monthly')}<div id="cu" hidden>${field('From','from','','date')}${field('To','to','','date')}</div>
+ <div class="row" style="margin-top:14px"><button class="btn" data-f="xlsx">Excel (.xlsx)</button><button class="btn" data-f="docx">Word (.docx)</button><button class="btn" data-f="pdf">PDF (.pdf)</button></div></div>`;bindBack();
+ const rg=$('[name=rg]');rg.onchange=()=>$('#cu').hidden=rg.value!=='custom';
+ $('#view').onclick=e=>{const b=e.target.closest('[data-f]');if(!b)return;const[f,t]=rg.value==='custom'?[$('[name=from]').value,$('[name=to]').value]:range(rg.value);
+  if(rg.value==='custom'&&(!f||!t||f>t))return note(`<h3>Choose a valid date range</h3>${OK}`);dl(b.dataset.f,f,t,[tid()],false)}}
+
+// ---- profile / backup ----
+function profile(){$('#view').innerHTML=`<div class="glass p" style="max-width:560px"><h3>${esc(me.name)}</h3><p style="color:var(--mu)">User ID: ${esc(me.uid)} · ${me.role}</p><div class="row"><button class="btn" id="cp">Change Password</button><button class="btn ghost" id="th">Dark / Light</button><button class="btn red" id="lg">Secure Logout</button></div>
+ <h4 style="margin-top:22px">Backup & Recovery</h4><p style="color:var(--mu);font-size:13px">Your data is saved in the owner's Google Sheet. You can also download a backup file.</p><div class="row"><button class="btn ghost" id="bk">Download Backup (.json)</button><label class="btn ghost" style="margin:0">Restore my records<input id="rs" type="file" accept=".json" hidden></label></div></div>`;
+ $('#th').onclick=()=>{const t=document.documentElement.dataset.theme==='dark'?'light':'dark';document.documentElement.dataset.theme=t;localStorage.setItem('bm_theme',t)};$('#lg').onclick=logout;
+ $('#cp').onclick=()=>modal('Change Password',field('Current password','cur','','password','required')+field('New password (min 6)','nw','','password','required minlength=6'),'Update',async d=>{const r=await api('pw',d);TOKEN=r.token;localStorage.setItem('bm_t',TOKEN);note(`${tick}<h3>Password changed</h3>`,1800)});
+ $('#bk').onclick=async()=>{try{const d=await api('export',{ids:me.role==='owner'?undefined:[me.id]});d.exported=new Date().toISOString();const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(d)],{type:'application/json'}));a.download='budget-backup-'+today()+'.json';a.click()}catch(e){note(`<h3>Backup failed</h3><p>${esc(e.message)}</p>${OK}`)}};
+ $('#rs').onchange=e=>{const fl=e.target.files[0];if(!fl)return;fl.text().then(t=>{let d;try{d=JSON.parse(t);if(!Array.isArray(d.tx))throw 0}catch{return note(`<h3>Invalid backup file</h3>${OK}`)}
+  modal('Restore my records?','<p>Your current transactions will be replaced by the ones in this file.</p>','Restore',async()=>{const mine=d.tx.filter(x=>x.userId===me.id);const r=await api('tx.restore',{tx:mine});note(`${tick}<h3>${r.n} records restored</h3>`,1800);go('dashboard')})})}}
+
+// ---- admin ----
+async function adminPage(){view=null;const us=(await api('admin.users')).users,a=us.filter(u=>u.active).length,I=sum(us.map(u=>({amount:u.income}))),E=sum(us.map(u=>({amount:u.expense})));
+ $('#view').innerHTML=`<div class="grid">${[['TOTAL MEMBERS',us.length],['ACTIVE',a],['INACTIVE',us.length-a],['COMBINED INCOME',inr(I)],['COMBINED EXPENSES',inr(E)],['COMBINED BALANCE',inr(I-E)]].map(c=>`<div class="glass card"><small>${c[0]}</small><b>${c[1]}</b></div>`).join('')}</div>
+ <div class="glass p"><div class="row" style="margin-bottom:12px"><button class="btn" id="nm">+ Create Member</button><span style="color:var(--mu)">Combined report:</span>${['xlsx','docx','pdf'].map(f=>`<button class="btn sm ghost" data-all="${f}">${f.toUpperCase()}</button>`).join('')}</div>
+ <div class="tw"><table><tr><th>NAME</th><th>USER ID</th><th>STATUS</th><th>INCOME</th><th>EXPENSE</th><th>BALANCE</th><th>CREATED</th><th>ACTIONS</th></tr>${us.map(u=>`<tr><td>${esc(u.name)}</td><td>${esc(u.uid)}</td><td><span class="chip ${u.active?'on':'off'}">${u.active?'Active':'Inactive'}</span></td><td>${inr(u.income)}</td><td>${inr(u.expense)}</td><td>${inr(u.income-u.expense)}</td><td>${esc(u.created)}</td><td><button class="btn sm" data-v="${u.id}">View Details</button> ${['xlsx','docx','pdf'].map(f=>`<button class="btn sm ghost" data-r="${u.id}" data-f="${f}">${f}</button>`).join(' ')} <button class="btn sm ghost" data-ed="${u.id}">Edit</button> <button class="btn sm red" data-del="${u.id}">Delete</button></td></tr>`).join('')||'<tr><td colspan=8>No members yet</td></tr>'}</table></div></div>`;
+ $('#nm').onclick=()=>modal('Create Member',field('Full name','name','','text','required')+field('User ID (blank = auto)','uid')+field('Password (blank = auto generate, min 6)','password'),'Create',async d=>{
+  const r=await api('admin.create',d);await adminPage();note(`${tick}<h3>Member created</h3><p>User ID: <b>${esc(r.uid)}</b><br>Password: <b>${esc(r.password)}</b></p><p style="color:var(--mu)">Save this now. The password cannot be viewed again.</p>${OK}`)});
+ $('#view').onclick=e=>{const b=e.target.closest('button');if(!b)return;const u=us.find(x=>x.id===(b.dataset.v||b.dataset.r||b.dataset.ed||b.dataset.del));
+  if(b.dataset.all)dl(b.dataset.all,'','',us.map(x=>x.id),true);else if(b.dataset.r)dl(b.dataset.f,'','',[u.id],false);else if(b.dataset.v){view=u;go('dashboard')}
+  else if(b.dataset.ed)modal('Edit Member',field('Name','name',u.name,'text','required')+field('New password (blank = keep)','password')+`<label><input type="checkbox" name="active" ${u.active?'checked':''} style="width:auto"> Account active</label>`,'Save',async d=>{await api('admin.update',{id:u.id,name:d.name,active:!!d.active,password:d.password||undefined});adminPage()})
+  else if(b.dataset.del)modal('Delete member?',`<p>Delete <b>${esc(u.name)}</b> and ALL their records permanently?</p>`,'Delete',async()=>{await api('admin.delete',{id:u.id});adminPage()})}}
+</script></body></html>
